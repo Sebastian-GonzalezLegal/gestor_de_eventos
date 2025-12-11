@@ -1,0 +1,28 @@
+{
+  "name": "gestor-usuarios-eventos",
+  "version": "1.0.0",
+  "description": "Sistema gestor de usuarios para eventos",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "client": "cd client && npm start",
+    "server": "nodemon server.js",
+    "dev-all": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "keywords": ["eventos", "usuarios", "gestor"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "body-parser": "^1.20.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2",
+    "concurrently": "^8.2.2"
+  }
+}
+

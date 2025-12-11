@@ -1,0 +1,15 @@
+.usuarios {
+  padding: 16px 0;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.loading {
+  text-align: center;
+  padding: 40px;
+  font-size: 18px;
+  color: var(--muted);
+}
+

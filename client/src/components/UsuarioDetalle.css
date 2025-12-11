@@ -1,0 +1,45 @@
+.detalle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.detalle-grid > div {
+  background: #14151c;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.eventos-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.evento-item {
+  background: #14151c;
+  border-left: 4px solid var(--primary);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.evento-nombre {
+  font-weight: 700;
+  font-size: 16px;
+  margin-bottom: 4px;
+}
+
+.evento-fecha,
+.evento-lugar,
+.evento-fecha-registro,
+.evento-notas {
+  font-size: 13px;
+  color: #d1d5db;
+}
+
+.evento-notas {
+  margin-top: 4px;
+}
+

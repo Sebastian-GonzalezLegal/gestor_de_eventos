@@ -1,0 +1,89 @@
+.registro-evento {
+  padding: 16px 0;
+}
+
+.search-section {
+  margin-bottom: 22px;
+}
+
+.search-input-group {
+  display: flex;
+  gap: 10px;
+}
+
+.search-input-group input {
+  flex: 1;
+}
+
+.usuario-info {
+  margin-top: 22px;
+}
+
+.usuario-info .card {
+  margin-bottom: 18px;
+}
+
+.usuario-info h3 {
+  margin-bottom: 14px;
+  color: #fff;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.info-grid > div {
+  padding: 10px;
+  background-color: #14151c;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.eventos-list {
+  display: grid;
+  gap: 12px;
+}
+
+.evento-item {
+  padding: 14px;
+  background-color: #14151c;
+  border-left: 4px solid var(--primary);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.evento-nombre {
+  font-weight: 700;
+  font-size: 16px;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.evento-fecha {
+  color: #d1d5db;
+  margin-bottom: 4px;
+}
+
+.evento-lugar {
+  color: #d1d5db;
+  font-style: italic;
+  margin-bottom: 4px;
+}
+
+.evento-fecha-registro {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-top: 6px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
