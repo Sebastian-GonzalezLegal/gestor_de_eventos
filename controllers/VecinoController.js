@@ -1,11 +1,11 @@
-const Usuario = require('../models/Usuario');
+const Vecino = require('../models/Vecino');
 const RegistroEvento = require('../models/RegistroEvento');
 
-class UsuarioController {
+class VecinoController {
   static async getAll(req, res) {
     try {
-      const usuarios = await Usuario.findAll();
-      res.json(usuarios);
+      const vecinos = await Vecino.findAll();
+      res.json(vecinos);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -14,17 +14,17 @@ class UsuarioController {
   static async getById(req, res) {
     try {
       const { id } = req.params;
-      const usuario = await Usuario.findById(id);
-      
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+      const vecino = await Vecino.findById(id);
+
+      if (!vecino) {
+        return res.status(404).json({ error: 'Vecino no encontrado' });
       }
 
-      // Obtener eventos del usuario
-      const eventos = await Usuario.getEventosByUsuario(id);
-      usuario.eventos = eventos;
+      // Obtener eventos del vecino
+      const eventos = await Vecino.getEventosByVecino(id);
+      vecino.eventos = eventos;
 
-      res.json(usuario);
+      res.json(vecino);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -36,9 +36,9 @@ class UsuarioController {
       if (!q) {
         return res.status(400).json({ error: 'Parámetro de búsqueda requerido' });
       }
-      
-      const usuarios = await Usuario.search(q);
-      res.json(usuarios);
+
+      const vecinos = await Vecino.search(q);
+      res.json(vecinos);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -47,17 +47,17 @@ class UsuarioController {
   static async getByDocumento(req, res) {
     try {
       const { documento } = req.params;
-      const usuario = await Usuario.findByDocumento(documento);
-      
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+      const vecino = await Vecino.findByDocumento(documento);
+
+      if (!vecino) {
+        return res.status(404).json({ error: 'Vecino no encontrado' });
       }
 
-      // Obtener eventos del usuario
-      const eventos = await Usuario.getEventosByUsuario(usuario.id);
-      usuario.eventos = eventos;
+      // Obtener eventos del vecino
+      const eventos = await Vecino.getEventosByVecino(vecino.id);
+      vecino.eventos = eventos;
 
-      res.json(usuario);
+      res.json(vecino);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -72,13 +72,13 @@ class UsuarioController {
       }
 
       // Verificar si ya existe el documento
-      const existing = await Usuario.findByDocumento(documento);
+      const existing = await Vecino.findByDocumento(documento);
       if (existing) {
-        return res.status(400).json({ error: 'Ya existe un usuario con este documento' });
+        return res.status(400).json({ error: 'Ya existe un vecino con este documento' });
       }
 
-      const usuario = await Usuario.create({ nombre, apellido, email, telefono, documento });
-      res.status(201).json(usuario);
+      const vecino = await Vecino.create({ nombre, apellido, email, telefono, documento });
+      res.status(201).json(vecino);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -93,20 +93,20 @@ class UsuarioController {
         return res.status(400).json({ error: 'Nombre, apellido y documento son requeridos' });
       }
 
-      const usuario = await Usuario.findById(id);
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+      const vecino = await Vecino.findById(id);
+      if (!vecino) {
+        return res.status(404).json({ error: 'Vecino no encontrado' });
       }
 
-      // Verificar si el documento ya existe en otro usuario
-      if (documento !== usuario.documento) {
-        const existing = await Usuario.findByDocumento(documento);
+      // Verificar si el documento ya existe en otro vecino
+      if (documento !== vecino.documento) {
+        const existing = await Vecino.findByDocumento(documento);
         if (existing) {
-          return res.status(400).json({ error: 'Ya existe otro usuario con este documento' });
+          return res.status(400).json({ error: 'Ya existe otro vecino con este documento' });
         }
       }
 
-      const updated = await Usuario.update(id, { nombre, apellido, email, telefono, documento });
+      const updated = await Vecino.update(id, { nombre, apellido, email, telefono, documento });
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -116,14 +116,14 @@ class UsuarioController {
   static async delete(req, res) {
     try {
       const { id } = req.params;
-      const usuario = await Usuario.findById(id);
-      
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+      const vecino = await Vecino.findById(id);
+
+      if (!vecino) {
+        return res.status(404).json({ error: 'Vecino no encontrado' });
       }
 
-      await Usuario.delete(id);
-      res.json({ message: 'Usuario eliminado correctamente' });
+      await Vecino.delete(id);
+      res.json({ message: 'Vecino eliminado correctamente' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -132,13 +132,13 @@ class UsuarioController {
   static async toggleActivo(req, res) {
     try {
       const { id } = req.params;
-      const usuario = await Usuario.toggleActivo(id);
-      
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+      const vecino = await Vecino.toggleActivo(id);
+
+      if (!vecino) {
+        return res.status(404).json({ error: 'Vecino no encontrado' });
       }
 
-      res.json(usuario);
+      res.json(vecino);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -147,7 +147,7 @@ class UsuarioController {
   static async getEventos(req, res) {
     try {
       const { id } = req.params;
-      const eventos = await Usuario.getEventosByUsuario(id);
+      const eventos = await Vecino.getEventosByVecino(id);
       res.json(eventos);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -155,5 +155,4 @@ class UsuarioController {
   }
 }
 
-module.exports = UsuarioController;
-
+module.exports = VecinoController;

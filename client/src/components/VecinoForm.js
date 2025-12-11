@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { usuariosAPI } from '../services/api';
+import { FaSave, FaTimes } from 'react-icons/fa';
+import { vecinosAPI } from '../services/api';
 import './Modal.css';
 
-const UsuarioForm = ({ usuario, onClose, onSave }) => {
+const VecinoForm = ({ vecino, onClose, onSave }) => {
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -14,16 +15,16 @@ const UsuarioForm = ({ usuario, onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (usuario) {
+    if (vecino) {
       setFormData({
-        nombre: usuario.nombre || '',
-        apellido: usuario.apellido || '',
-        documento: usuario.documento || '',
-        email: usuario.email || '',
-        telefono: usuario.telefono || '',
+        nombre: vecino.nombre || '',
+        apellido: vecino.apellido || '',
+        documento: vecino.documento || '',
+        email: vecino.email || '',
+        telefono: vecino.telefono || '',
       });
     }
-  }, [usuario]);
+  }, [vecino]);
 
   const handleChange = (e) => {
     setFormData({
@@ -39,14 +40,14 @@ const UsuarioForm = ({ usuario, onClose, onSave }) => {
     setLoading(true);
 
     try {
-      if (usuario) {
-        await usuariosAPI.update(usuario.id, formData);
+      if (vecino) {
+        await vecinosAPI.update(vecino.id, formData);
       } else {
-        await usuariosAPI.create(formData);
+        await vecinosAPI.create(formData);
       }
       onSave();
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al guardar usuario');
+      setError(err.response?.data?.error || 'Error al guardar vecino');
     } finally {
       setLoading(false);
     }
@@ -56,18 +57,19 @@ const UsuarioForm = ({ usuario, onClose, onSave }) => {
     <div className="modal">
       <div className="modal-content">
         <div className="modal-header">
-          <h2>{usuario ? 'Editar Usuario' : 'Nuevo Usuario'}</h2>
+          <h3>{vecino ? 'Editar Vecino' : 'Nuevo Vecino'}</h3>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
 
-        {error && (
-          <div className="alert alert-error">{error}</div>
-        )}
+        <div className="modal-body">
+          {error && (
+            <div className="alert alert-error">{error}</div>
+          )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Nombre *</label>
-            <input
+          <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label>Nombre *</label>
+              <input
               type="text"
               name="nombre"
               value={formData.nombre}
@@ -118,19 +120,19 @@ const UsuarioForm = ({ usuario, onClose, onSave }) => {
             />
           </div>
 
-          <div className="form-actions">
-            <button type="button" className="btn btn-secondary" onClick={onClose}>
-              Cancelar
-            </button>
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Guardando...' : 'Guardar'}
-            </button>
-          </div>
-        </form>
+            <div className="form-actions">
+              <button type="button" className="btn btn-secondary" onClick={onClose}>
+                <FaTimes /> Cancelar
+              </button>
+              <button type="submit" className="btn btn-primary" disabled={loading}>
+                <FaSave /> {loading ? 'Guardando...' : 'Guardar'}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
 };
 
-export default UsuarioForm;
-
+export default VecinoForm;

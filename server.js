@@ -12,13 +12,19 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
-const usuarioRoutes = require('./routes/usuarioRoutes');
+const vecinoRoutes = require('./routes/vecinoRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
 const registroRoutes = require('./routes/registroRoutes');
+const subsecretariaRoutes = require('./routes/subsecretariaRoutes');
+const tipoRoutes = require('./routes/tipoRoutes');
+const subtipoRoutes = require('./routes/subtipoRoutes');
 
-app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/vecinos', vecinoRoutes);
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/registros', registroRoutes);
+app.use('/api/subsecretarias', subsecretariaRoutes);
+app.use('/api/tipos', tipoRoutes);
+app.use('/api/subtipos', subtipoRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

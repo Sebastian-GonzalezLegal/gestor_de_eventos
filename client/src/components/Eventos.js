@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch } from 'react-icons/fa';
 import { eventosAPI } from '../services/api';
 import EventoForm from './EventoForm';
 import './Eventos.css';
@@ -9,6 +10,7 @@ const Eventos = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingEvento, setEditingEvento] = useState(null);
   const [alert, setAlert] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadEventos();
@@ -26,6 +28,37 @@ const Eventos = () => {
     }
   };
 
+  const handleSearch = async (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+
+    if (term.trim() === '') {
+      loadEventos();
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // Para eventos, podemos filtrar localmente por nombre, descripción o lugar
+      const allEventos = await eventosAPI.getAll();
+      const filteredEventos = allEventos.data.filter(evento =>
+        evento.nombre.toLowerCase().includes(term.toLowerCase()) ||
+        evento.descripcion?.toLowerCase().includes(term.toLowerCase()) ||
+        evento.lugar?.toLowerCase().includes(term.toLowerCase())
+      );
+      setEventos(filteredEventos);
+    } catch (error) {
+      showAlert('Error en la búsqueda', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const showAlert = (message, type = 'success') => {
+    setAlert({ message, type });
+    setTimeout(() => setAlert(null), 3000);
+  };
+
   const handleCreate = () => {
     setEditingEvento(null);
     setShowModal(true);
@@ -37,40 +70,43 @@ const Eventos = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro de eliminar este evento?')) {
-      try {
-        await eventosAPI.delete(id);
-        showAlert('Evento eliminado correctamente', 'success');
-        loadEventos();
-      } catch (error) {
-        showAlert(error.response?.data?.error || 'Error al eliminar evento', 'error');
-      }
-    }
-  };
+    if (!window.confirm('¿Estás seguro de eliminar este evento?')) return;
 
-  const handleToggleActivo = async (id) => {
     try {
-      await eventosAPI.toggleActivo(id);
-      showAlert('Estado actualizado correctamente', 'success');
+      await eventosAPI.delete(id);
+      showAlert('Evento eliminado correctamente');
       loadEventos();
     } catch (error) {
-      showAlert('Error al actualizar estado', 'error');
+      showAlert('Error al eliminar evento', 'error');
     }
   };
 
-  const handleSave = () => {
-    setShowModal(false);
-    loadEventos();
+  const handleSave = async (formData) => {
+    try {
+      if (editingEvento) {
+        await eventosAPI.update(editingEvento.id, formData);
+      } else {
+        await eventosAPI.create(formData);
+      }
+      setShowModal(false);
+      setEditingEvento(null);
+      loadEventos();
+      showAlert('Evento guardado correctamente');
+    } catch (error) {
+      showAlert('Error al guardar evento', 'error');
+    }
   };
 
-  const showAlert = (message, type) => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES');
   };
 
-  if (loading) {
-    return <div className="loading">Cargando...</div>;
-  }
+  const formatTime = (timeString) => {
+    if (!timeString) return '';
+    return timeString;
+  };
 
   return (
     <div className="eventos">
@@ -78,89 +114,142 @@ const Eventos = () => {
         <div className="card-header">
           <h2>Gestión de Eventos</h2>
           <button className="btn btn-primary" onClick={handleCreate}>
-            + Nuevo Evento
+            <FaPlus /> Nuevo Evento
           </button>
         </div>
 
-        {alert && (
-          <div className={`alert alert-${alert.type}`}>
-            {alert.message}
-          </div>
-        )}
-
-        <div className="table-container">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Lugar</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              {eventos.length === 0 ? (
-                <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
-                    No hay eventos registrados
-                  </td>
-                </tr>
-              ) : (
-                eventos.map((evento) => (
-                  <tr key={evento.id}>
-                    <td>{evento.nombre}</td>
-                    <td>{evento.descripcion || '-'}</td>
-                    <td>{new Date(evento.fecha_evento).toLocaleDateString('es-ES')}</td>
-                    <td>{evento.hora_evento || '-'}</td>
-                    <td>{evento.lugar || '-'}</td>
-                    <td>
-                      <span className={`badge ${evento.activo ? 'badge-success' : 'badge-danger'}`}>
-                        {evento.activo ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleEdit(evento)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          className={`btn ${evento.activo ? 'btn-warning' : 'btn-success'}`}
-                          onClick={() => handleToggleActivo(evento.id)}
-                        >
-                          {evento.activo ? 'Inhabilitar' : 'Habilitar'}
-                        </button>
-                        <button
-                          className="btn btn-danger"
-                          onClick={() => handleDelete(evento.id)}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      <div className="search-box">
+        <div className="search-input-container">
+          <FaSearch className="search-icon" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre, descripción o lugar..."
+            value={searchTerm}
+            onChange={handleSearch}
+            className="search-input"
+          />
+          {searchTerm && (
+            <button
+              type="button"
+              className="clear-search"
+              onClick={() => {
+                setSearchTerm('');
+                loadEventos();
+              }}
+              title="Limpiar búsqueda"
+            >
+              ×
+            </button>
+          )}
         </div>
+      </div>
+
+      {alert && (
+        <div className={`alert alert-${alert.type}`}>
+          {alert.message}
+        </div>
+      )}
+
+      <div className="eventos-grid">
+        {loading ? (
+          <div className="loading">Cargando eventos...</div>
+        ) : eventos.length === 0 ? (
+          <div className="no-data">No hay eventos registrados</div>
+        ) : (
+          eventos.map((evento) => (
+            <div key={evento.id} className="evento-card">
+              <div className="evento-header">
+                <div className="evento-title-section">
+                  <h3>{evento.nombre}</h3>
+                  {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && (
+                    <div className="evento-category-badges">
+                      {evento.subsecretaria_nombre && (
+                        <span className="category-badge category-subsecretaria">
+                          🏢 {evento.subsecretaria_nombre}
+                        </span>
+                      )}
+                      {evento.tipo_nombre && (
+                        <span className="category-badge category-tipo">
+                          🏷️ {evento.tipo_nombre}
+                        </span>
+                      )}
+                      {evento.subtipo_nombre && (
+                        <span className="category-badge category-subtipo">
+                          🏷️ {evento.subtipo_nombre}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="evento-actions">
+                  <button
+                    className="btn btn-sm btn-secondary"
+                    onClick={() => handleEdit(evento)}
+                    title="Editar evento"
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => handleDelete(evento.id)}
+                    title="Eliminar evento"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+
+              <div className="evento-content">
+                {evento.descripcion && (
+                  <div className="evento-description-section">
+                    <p className="evento-description">{evento.descripcion}</p>
+                  </div>
+                )}
+
+                <div className="evento-details-grid">
+                  <div className="detail-primary">
+                    <div className="detail-item detail-date">
+                      <FaCalendarAlt />
+                      <span className="detail-text">{formatDate(evento.fecha_evento)}</span>
+                    </div>
+                    {evento.hora_evento && (
+                      <div className="detail-item detail-time">
+                        <FaClock />
+                        <span className="detail-text">{formatTime(evento.hora_evento)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {evento.lugar && (
+                    <div className="detail-secondary">
+                      <div className="detail-item detail-location">
+                        <FaMapMarkerAlt />
+                        <span className="detail-text">{evento.lugar}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {showModal && (
         <EventoForm
           evento={editingEvento}
-          onClose={() => setShowModal(false)}
+          onClose={() => {
+            setShowModal(false);
+            setEditingEvento(null);
+          }}
           onSave={handleSave}
         />
       )}
+      </div>
     </div>
   );
 };
+
 
 export default Eventos;
 

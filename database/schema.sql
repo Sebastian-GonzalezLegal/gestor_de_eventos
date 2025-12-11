@@ -2,8 +2,8 @@
 CREATE DATABASE IF NOT EXISTS gestor_eventos;
 USE gestor_eventos;
 
--- Tabla de usuarios
-CREATE TABLE IF NOT EXISTS usuarios (
+-- Tabla de vecinos
+CREATE TABLE IF NOT EXISTS vecinos (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(100) NOT NULL,
   apellido VARCHAR(100) NOT NULL,
@@ -25,23 +25,63 @@ CREATE TABLE IF NOT EXISTS eventos (
   fecha_evento DATE NOT NULL,
   hora_evento TIME,
   lugar VARCHAR(200),
+  subsecretaria_id INT,
+  tipo_id INT,
+  subtipo_id INT,
   activo BOOLEAN DEFAULT TRUE,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_fecha (fecha_evento)
+  FOREIGN KEY (subsecretaria_id) REFERENCES subsecretarias(id) ON DELETE SET NULL,
+  FOREIGN KEY (tipo_id) REFERENCES tipos(id) ON DELETE SET NULL,
+  FOREIGN KEY (subtipo_id) REFERENCES subtipos(id) ON DELETE SET NULL,
+  INDEX idx_fecha (fecha_evento),
+  INDEX idx_subsecretaria (subsecretaria_id),
+  INDEX idx_tipo (tipo_id),
+  INDEX idx_subtipo (subtipo_id)
 );
 
--- Tabla de registros (relación muchos a muchos entre usuarios y eventos)
+-- Tabla de registros (relación muchos a muchos entre vecinos y eventos)
 CREATE TABLE IF NOT EXISTS registros_eventos (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  usuario_id INT NOT NULL,
+  vecino_id INT NOT NULL,
   evento_id INT NOT NULL,
   fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   notas TEXT,
-  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+  FOREIGN KEY (vecino_id) REFERENCES vecinos(id) ON DELETE CASCADE,
   FOREIGN KEY (evento_id) REFERENCES eventos(id) ON DELETE CASCADE,
-  UNIQUE KEY unique_usuario_evento (usuario_id, evento_id),
-  INDEX idx_usuario (usuario_id),
+  UNIQUE KEY unique_vecino_evento (vecino_id, evento_id),
+  INDEX idx_vecino (vecino_id),
   INDEX idx_evento (evento_id)
+);
+
+-- Tabla de subsecretarias
+CREATE TABLE IF NOT EXISTS subsecretarias (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL UNIQUE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_nombre (nombre)
+);
+
+-- Tabla de tipos
+CREATE TABLE IF NOT EXISTS tipos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL UNIQUE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_nombre (nombre)
+);
+
+-- Tabla de subtipos
+CREATE TABLE IF NOT EXISTS subtipos (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(200) NOT NULL,
+  tipo_id INT NOT NULL,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (tipo_id) REFERENCES tipos(id) ON DELETE CASCADE,
+  UNIQUE KEY unique_subtipo_tipo (nombre, tipo_id),
+  INDEX idx_tipo (tipo_id),
+  INDEX idx_nombre (nombre)
 );
 

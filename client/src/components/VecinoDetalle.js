@@ -1,35 +1,35 @@
 import React from 'react';
 import './Modal.css';
-import './UsuarioDetalle.css';
+import './VecinoDetalle.css';
 
-const UsuarioDetalle = ({ usuario, onClose }) => {
-  const eventos = usuario.eventos || [];
+const VecinoDetalle = ({ vecino, onClose }) => {
+  const eventos = vecino.eventos || [];
 
   return (
     <div className="modal">
       <div className="modal-content">
         <div className="modal-header">
-          <h2>Detalle de Usuario</h2>
+          <h2>Detalle de Vecino</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
 
         <div className="detalle-grid">
           <div>
-            <strong>Nombre:</strong> {usuario.nombre} {usuario.apellido}
+            <strong>Nombre:</strong> {vecino.nombre} {vecino.apellido}
           </div>
           <div>
-            <strong>Documento:</strong> {usuario.documento}
+            <strong>Documento:</strong> {vecino.documento}
           </div>
           <div>
-            <strong>Email:</strong> {usuario.email || '-'}
+            <strong>Email:</strong> {vecino.email || '-'}
           </div>
           <div>
-            <strong>Teléfono:</strong> {usuario.telefono || '-'}
+            <strong>Teléfono:</strong> {vecino.telefono || '-'}
           </div>
           <div>
             <strong>Estado:</strong>{' '}
-            <span className={`badge ${usuario.activo ? 'badge-success' : 'badge-danger'}`}>
-              {usuario.activo ? 'Activo' : 'Inactivo'}
+            <span className={`badge ${vecino.activo ? 'badge-success' : 'badge-danger'}`}>
+              {vecino.activo ? 'Activo' : 'Inactivo'}
             </span>
           </div>
         </div>
@@ -60,5 +60,4 @@ const UsuarioDetalle = ({ usuario, onClose }) => {
   );
 };
 
-export default UsuarioDetalle;
-
+export default VecinoDetalle;

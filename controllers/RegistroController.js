@@ -1,5 +1,5 @@
 const RegistroEvento = require('../models/RegistroEvento');
-const Usuario = require('../models/Usuario');
+const Vecino = require('../models/Vecino');
 const Evento = require('../models/Evento');
 
 class RegistroController {
@@ -29,16 +29,16 @@ class RegistroController {
 
   static async create(req, res) {
     try {
-      const { usuario_id, evento_id, notas } = req.body;
+      const { vecino_id, evento_id, notas } = req.body;
 
-      if (!usuario_id || !evento_id) {
-        return res.status(400).json({ error: 'Usuario y evento son requeridos' });
+      if (!vecino_id || !evento_id) {
+        return res.status(400).json({ error: 'Vecino y evento son requeridos' });
       }
 
-      // Verificar que el usuario existe
-      const usuario = await Usuario.findById(usuario_id);
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado' });
+      // Verificar que el vecino existe
+      const vecino = await Vecino.findById(vecino_id);
+      if (!vecino) {
+        return res.status(404).json({ error: 'Vecino no encontrado' });
       }
 
       // Verificar que el evento existe
@@ -47,7 +47,7 @@ class RegistroController {
         return res.status(404).json({ error: 'Evento no encontrado' });
       }
 
-      const registro = await RegistroEvento.create({ usuario_id, evento_id, notas });
+      const registro = await RegistroEvento.create({ vecino_id, evento_id, notas });
       res.status(201).json(registro);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -78,10 +78,10 @@ class RegistroController {
         return res.status(400).json({ error: 'Documento y evento son requeridos' });
       }
 
-      // Buscar usuario por documento
-      const usuario = await Usuario.findByDocumento(documento);
-      if (!usuario) {
-        return res.status(404).json({ error: 'Usuario no encontrado. Debe registrarlo primero.' });
+      // Buscar vecino por documento
+      const vecino = await Vecino.findByDocumento(documento);
+      if (!vecino) {
+        return res.status(404).json({ error: 'Vecino no encontrado. Debe registrarlo primero.' });
       }
 
       // Verificar que el evento existe
@@ -91,24 +91,24 @@ class RegistroController {
       }
 
       // Verificar si ya está registrado
-      const existing = await RegistroEvento.findByUsuarioAndEvento(usuario.id, evento_id);
+      const existing = await RegistroEvento.findByVecinoAndEvento(vecino.id, evento_id);
       if (existing) {
-        return res.status(400).json({ 
-          error: 'El usuario ya está registrado en este evento',
-          usuario,
+        return res.status(400).json({
+          error: 'El vecino ya está registrado en este evento',
+          vecino,
           evento
         });
       }
 
-      const registro = await RegistroEvento.create({ 
-        usuario_id: usuario.id, 
-        evento_id, 
-        notas 
+      const registro = await RegistroEvento.create({
+        vecino_id: vecino.id,
+        evento_id,
+        notas
       });
-      
+
       res.status(201).json({
         registro,
-        usuario,
+        vecino,
         evento
       });
     } catch (error) {

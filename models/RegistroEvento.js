@@ -4,9 +4,9 @@ class RegistroEvento {
   static async findAll() {
     return new Promise((resolve, reject) => {
       db.query(
-        `SELECT re.*, u.nombre, u.apellido, u.documento, e.nombre as evento_nombre, e.fecha_evento
+        `SELECT re.*, v.nombre, v.apellido, v.documento, e.nombre as evento_nombre, e.fecha_evento
          FROM registros_eventos re
-         INNER JOIN usuarios u ON re.usuario_id = u.id
+         INNER JOIN vecinos v ON re.vecino_id = v.id
          INNER JOIN eventos e ON re.evento_id = e.id
          ORDER BY re.fecha_registro DESC`,
         (err, results) => {
@@ -20,9 +20,9 @@ class RegistroEvento {
   static async findById(id) {
     return new Promise((resolve, reject) => {
       db.query(
-        `SELECT re.*, u.nombre, u.apellido, u.documento, e.nombre as evento_nombre
+        `SELECT re.*, v.nombre, v.apellido, v.documento, e.nombre as evento_nombre
          FROM registros_eventos re
-         INNER JOIN usuarios u ON re.usuario_id = u.id
+         INNER JOIN vecinos v ON re.vecino_id = v.id
          INNER JOIN eventos e ON re.evento_id = e.id
          WHERE re.id = ?`,
         [id],
@@ -34,11 +34,11 @@ class RegistroEvento {
     });
   }
 
-  static async findByUsuarioAndEvento(usuarioId, eventoId) {
+  static async findByVecinoAndEvento(vecinoId, eventoId) {
     return new Promise((resolve, reject) => {
       db.query(
-        'SELECT * FROM registros_eventos WHERE usuario_id = ? AND evento_id = ?',
-        [usuarioId, eventoId],
+        'SELECT * FROM registros_eventos WHERE vecino_id = ? AND evento_id = ?',
+        [vecinoId, eventoId],
         (err, results) => {
           if (err) reject(err);
           else resolve(results[0]);
@@ -49,19 +49,19 @@ class RegistroEvento {
 
   static async create(registroData) {
     return new Promise((resolve, reject) => {
-      const { usuario_id, evento_id, notas } = registroData;
-      
+      const { vecino_id, evento_id, notas } = registroData;
+
       // Verificar si ya existe el registro
-      this.findByUsuarioAndEvento(usuario_id, evento_id)
+      this.findByVecinoAndEvento(vecino_id, evento_id)
         .then(existing => {
           if (existing) {
-            reject(new Error('El usuario ya está registrado en este evento'));
+            reject(new Error('El vecino ya está registrado en este evento'));
             return;
           }
-          
+
           db.query(
-            'INSERT INTO registros_eventos (usuario_id, evento_id, notas) VALUES (?, ?, ?)',
-            [usuario_id, evento_id, notas || null],
+            'INSERT INTO registros_eventos (vecino_id, evento_id, notas) VALUES (?, ?, ?)',
+            [vecino_id, evento_id, notas || null],
             (err, results) => {
               if (err) reject(err);
               else resolve({ id: results.insertId, ...registroData });
@@ -81,11 +81,11 @@ class RegistroEvento {
     });
   }
 
-  static async deleteByUsuarioAndEvento(usuarioId, eventoId) {
+  static async deleteByVecinoAndEvento(vecinoId, eventoId) {
     return new Promise((resolve, reject) => {
       db.query(
-        'DELETE FROM registros_eventos WHERE usuario_id = ? AND evento_id = ?',
-        [usuarioId, eventoId],
+        'DELETE FROM registros_eventos WHERE vecino_id = ? AND evento_id = ?',
+        [vecinoId, eventoId],
         (err, results) => {
           if (err) reject(err);
           else resolve(results);

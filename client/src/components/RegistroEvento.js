@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { registrosAPI, usuariosAPI, eventosAPI } from '../services/api';
+import { FaSearch, FaUserCheck, FaCalendarPlus } from 'react-icons/fa';
+import { registrosAPI, vecinosAPI, eventosAPI } from '../services/api';
 import './RegistroEvento.css';
 
 const RegistroEvento = () => {
   const [documento, setDocumento] = useState('');
-  const [usuarioEncontrado, setUsuarioEncontrado] = useState(null);
+  const [vecinoEncontrado, setVecinoEncontrado] = useState(null);
   const [eventos, setEventos] = useState([]);
-  const [eventosUsuario, setEventosUsuario] = useState([]);
+  const [eventosVecino, setEventosVecino] = useState([]);
   const [eventoSeleccionado, setEventoSeleccionado] = useState('');
   const [notas, setNotas] = useState('');
   const [loading, setLoading] = useState(false);
@@ -26,32 +27,32 @@ const RegistroEvento = () => {
     }
   };
 
-  const buscarUsuario = async () => {
+  const buscarVecino = async () => {
     if (!documento.trim()) {
       showAlert('Por favor ingrese un documento', 'error');
       return;
     }
 
     setBuscando(true);
-    setUsuarioEncontrado(null);
-    setEventosUsuario([]);
+    setVecinoEncontrado(null);
+    setEventosVecino([]);
 
     try {
-      const usuario = await usuariosAPI.findByDocumento(documento);
-      if (usuario) {
-        setUsuarioEncontrado(usuario);
-        // Cargar eventos del usuario
-        const response = await usuariosAPI.getEventos(usuario.id);
-        setEventosUsuario(response.data);
-        showAlert('Usuario encontrado', 'success');
+      const vecino = await vecinosAPI.findByDocumento(documento);
+      if (vecino) {
+        setVecinoEncontrado(vecino);
+        // Cargar eventos del vecino
+        const response = await vecinosAPI.getEventos(vecino.id);
+        setEventosVecino(response.data);
+        showAlert('Vecino encontrado', 'success');
       } else {
-        showAlert('Usuario no encontrado. Debe registrarlo primero en la sección Usuarios.', 'error');
+        showAlert('Vecino no encontrado. Debe registrarlo primero en la sección Vecinos.', 'error');
       }
     } catch (error) {
       if (error.response?.status === 404) {
-        showAlert('Usuario no encontrado. Debe registrarlo primero en la sección Usuarios.', 'error');
+        showAlert('Vecino no encontrado. Debe registrarlo primero en la sección Vecinos.', 'error');
       } else {
-        showAlert('Error al buscar usuario', 'error');
+        showAlert('Error al buscar Vecino', 'error');
       }
     } finally {
       setBuscando(false);
@@ -61,8 +62,8 @@ const RegistroEvento = () => {
   const handleRegistro = async (e) => {
     e.preventDefault();
 
-    if (!usuarioEncontrado) {
-      showAlert('Debe buscar un usuario primero', 'error');
+    if (!vecinoEncontrado) {
+      showAlert('Debe buscar un vecino primero', 'error');
       return;
     }
 
@@ -75,25 +76,25 @@ const RegistroEvento = () => {
 
     try {
       await registrosAPI.registerByDocumento({
-        documento: usuarioEncontrado.documento,
+        documento: vecinoEncontrado.documento,
         evento_id: parseInt(eventoSeleccionado),
         notas: notas,
       });
 
-      showAlert('Usuario registrado al evento correctamente', 'success');
-      
-      // Recargar eventos del usuario
-      const response = await usuariosAPI.getEventos(usuarioEncontrado.id);
-      setEventosUsuario(response.data);
+      showAlert('Vecino registrado al evento correctamente', 'success');
+
+      // Recargar eventos del vecino
+      const response = await vecinosAPI.getEventos(vecinoEncontrado.id);
+      setEventosVecino(response.data);
       
       // Limpiar formulario
       setEventoSeleccionado('');
       setNotas('');
     } catch (error) {
       if (error.response?.status === 400 && error.response.data.error.includes('ya está registrado')) {
-        showAlert('El usuario ya está registrado en este evento', 'error');
+        showAlert('El Vecino ya está registrado en este evento', 'error');
       } else {
-        showAlert(error.response?.data?.error || 'Error al registrar usuario', 'error');
+        showAlert(error.response?.data?.error || 'Error al registrar Vecino', 'error');
       }
     } finally {
       setLoading(false);
@@ -107,7 +108,7 @@ const RegistroEvento = () => {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
-      buscarUsuario();
+      buscarVecino();
     }
   };
 
@@ -115,7 +116,7 @@ const RegistroEvento = () => {
     <div className="registro-evento">
       <div className="card">
         <div className="card-header">
-          <h2>Registro de Usuarios a Eventos</h2>
+          <h2>Registro de Vecinos a Eventos</h2>
         </div>
 
         {alert && (
@@ -126,8 +127,9 @@ const RegistroEvento = () => {
 
         <div className="search-section">
           <div className="form-group">
-            <label>Buscar Usuario por Documento</label>
-            <div className="search-input-group">
+            <label>Buscar Vecino por Documento</label>
+            <div className="search-input-container">
+              <FaSearch className="search-icon" />
               <input
                 type="text"
                 placeholder="Ingrese el número de documento..."
@@ -135,10 +137,25 @@ const RegistroEvento = () => {
                 onChange={(e) => setDocumento(e.target.value)}
                 onKeyPress={handleKeyPress}
                 disabled={buscando}
+                className="search-input"
               />
+              {documento && (
+                <button
+                  type="button"
+                  className="clear-search"
+                  onClick={() => {
+                    setDocumento('');
+                    setVecinoEncontrado(null);
+                    setEventosVecino([]);
+                  }}
+                  title="Limpiar búsqueda"
+                >
+                  ×
+                </button>
+              )}
               <button
-                className="btn btn-primary"
-                onClick={buscarUsuario}
+                className="btn btn-primary search-button"
+                onClick={buscarVecino}
                 disabled={buscando || !documento.trim()}
               >
                 {buscando ? 'Buscando...' : 'Buscar'}
@@ -147,37 +164,37 @@ const RegistroEvento = () => {
           </div>
         </div>
 
-        {usuarioEncontrado && (
-          <div className="usuario-info">
+        {vecinoEncontrado && (
+          <div className="vecino-info">
             <div className="card">
-              <h3>Información del Usuario</h3>
+              <h3>Información del Vecino</h3>
               <div className="info-grid">
                 <div>
-                  <strong>Nombre:</strong> {usuarioEncontrado.nombre} {usuarioEncontrado.apellido}
+                  <strong>Nombre:</strong> {vecinoEncontrado.nombre} {vecinoEncontrado.apellido}
                 </div>
                 <div>
-                  <strong>Documento:</strong> {usuarioEncontrado.documento}
+                  <strong>Documento:</strong> {vecinoEncontrado.documento}
                 </div>
                 <div>
-                  <strong>Email:</strong> {usuarioEncontrado.email || '-'}
+                  <strong>Email:</strong> {vecinoEncontrado.email || '-'}
                 </div>
                 <div>
-                  <strong>Teléfono:</strong> {usuarioEncontrado.telefono || '-'}
+                  <strong>Teléfono:</strong> {vecinoEncontrado.telefono || '-'}
                 </div>
                 <div>
                   <strong>Estado:</strong>{' '}
-                  <span className={`badge ${usuarioEncontrado.activo ? 'badge-success' : 'badge-danger'}`}>
-                    {usuarioEncontrado.activo ? 'Activo' : 'Inactivo'}
+                  <span className={`badge ${vecinoEncontrado.activo ? 'badge-success' : 'badge-danger'}`}>
+                    {vecinoEncontrado.activo ? 'Activo' : 'Inactivo'}
                   </span>
                 </div>
               </div>
             </div>
 
-            {eventosUsuario.length > 0 && (
+            {eventosVecino.length > 0 && (
               <div className="card">
                 <h3>Eventos Anteriores</h3>
                 <div className="eventos-list">
-                  {eventosUsuario.map((evento) => (
+                  {eventosVecino.map((evento) => (
                     <div key={evento.id} className="evento-item">
                       <div className="evento-nombre">{evento.nombre}</div>
                       <div className="evento-fecha">
@@ -185,6 +202,13 @@ const RegistroEvento = () => {
                         {evento.hora_evento && ` - ${evento.hora_evento}`}
                       </div>
                       {evento.lugar && <div className="evento-lugar">{evento.lugar}</div>}
+                      {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && (
+                        <div className="evento-categoria">
+                          {evento.subsecretaria_nombre && <span>🏢 {evento.subsecretaria_nombre}</span>}
+                          {evento.tipo_nombre && <span>🏷️ {evento.tipo_nombre}</span>}
+                          {evento.subtipo_nombre && <span>🏷️ {evento.subtipo_nombre}</span>}
+                        </div>
+                      )}
                       <div className="evento-fecha-registro">
                         Registrado: {new Date(evento.fecha_registro).toLocaleString('es-ES')}
                       </div>
@@ -210,6 +234,10 @@ const RegistroEvento = () => {
                       .map((evento) => (
                         <option key={evento.id} value={evento.id}>
                           {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
+                          {evento.subsecretaria_nombre && ` (${evento.subsecretaria_nombre}`}
+                          {evento.tipo_nombre && ` - ${evento.tipo_nombre}`}
+                          {evento.subtipo_nombre && ` - ${evento.subtipo_nombre}`}
+                          {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && ')'}
                         </option>
                       ))}
                   </select>
@@ -231,7 +259,7 @@ const RegistroEvento = () => {
                     className="btn btn-success"
                     disabled={loading || !eventoSeleccionado}
                   >
-                    {loading ? 'Registrando...' : 'Registrar al Evento'}
+                    <FaUserCheck /> {loading ? 'Registrando...' : 'Registrar al Evento'}
                   </button>
                 </div>
               </form>

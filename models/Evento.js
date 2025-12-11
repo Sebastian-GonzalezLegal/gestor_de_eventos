@@ -3,7 +3,17 @@ const db = require('../config/database');
 class Evento {
   static async findAll() {
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM eventos ORDER BY fecha_evento DESC', (err, results) => {
+      db.query(`
+        SELECT e.*,
+               s.nombre as subsecretaria_nombre,
+               t.nombre as tipo_nombre,
+               st.nombre as subtipo_nombre
+        FROM eventos e
+        LEFT JOIN subsecretarias s ON e.subsecretaria_id = s.id
+        LEFT JOIN tipos t ON e.tipo_id = t.id
+        LEFT JOIN subtipos st ON e.subtipo_id = st.id
+        ORDER BY e.fecha_evento DESC
+      `, (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -12,7 +22,17 @@ class Evento {
 
   static async findById(id) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM eventos WHERE id = ?', [id], (err, results) => {
+      db.query(`
+        SELECT e.*,
+               s.nombre as subsecretaria_nombre,
+               t.nombre as tipo_nombre,
+               st.nombre as subtipo_nombre
+        FROM eventos e
+        LEFT JOIN subsecretarias s ON e.subsecretaria_id = s.id
+        LEFT JOIN tipos t ON e.tipo_id = t.id
+        LEFT JOIN subtipos st ON e.subtipo_id = st.id
+        WHERE e.id = ?
+      `, [id], (err, results) => {
         if (err) reject(err);
         else resolve(results[0]);
       });
@@ -21,7 +41,18 @@ class Evento {
 
   static async findActive() {
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM eventos WHERE activo = TRUE ORDER BY fecha_evento DESC', (err, results) => {
+      db.query(`
+        SELECT e.*,
+               s.nombre as subsecretaria_nombre,
+               t.nombre as tipo_nombre,
+               st.nombre as subtipo_nombre
+        FROM eventos e
+        LEFT JOIN subsecretarias s ON e.subsecretaria_id = s.id
+        LEFT JOIN tipos t ON e.tipo_id = t.id
+        LEFT JOIN subtipos st ON e.subtipo_id = st.id
+        WHERE e.activo = TRUE
+        ORDER BY e.fecha_evento DESC
+      `, (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -30,10 +61,10 @@ class Evento {
 
   static async create(eventoData) {
     return new Promise((resolve, reject) => {
-      const { nombre, descripcion, fecha_evento, hora_evento, lugar } = eventoData;
+      const { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id } = eventoData;
       db.query(
-        'INSERT INTO eventos (nombre, descripcion, fecha_evento, hora_evento, lugar) VALUES (?, ?, ?, ?, ?)',
-        [nombre, descripcion || null, fecha_evento, hora_evento || null, lugar || null],
+        'INSERT INTO eventos (nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [nombre, descripcion || null, fecha_evento, hora_evento || null, lugar || null, subsecretaria_id || null, tipo_id || null, subtipo_id || null],
         (err, results) => {
           if (err) reject(err);
           else resolve({ id: results.insertId, ...eventoData });
@@ -44,10 +75,10 @@ class Evento {
 
   static async update(id, eventoData) {
     return new Promise((resolve, reject) => {
-      const { nombre, descripcion, fecha_evento, hora_evento, lugar } = eventoData;
+      const { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id } = eventoData;
       db.query(
-        'UPDATE eventos SET nombre = ?, descripcion = ?, fecha_evento = ?, hora_evento = ?, lugar = ? WHERE id = ?',
-        [nombre, descripcion || null, fecha_evento, hora_evento || null, lugar || null, id],
+        'UPDATE eventos SET nombre = ?, descripcion = ?, fecha_evento = ?, hora_evento = ?, lugar = ?, subsecretaria_id = ?, tipo_id = ?, subtipo_id = ? WHERE id = ?',
+        [nombre, descripcion || null, fecha_evento, hora_evento || null, lugar || null, subsecretaria_id || null, tipo_id || null, subtipo_id || null, id],
         (err, results) => {
           if (err) reject(err);
           else resolve({ id, ...eventoData });
@@ -79,12 +110,12 @@ class Evento {
     });
   }
 
-  static async getUsuariosByEvento(eventoId) {
+  static async getVecinosByEvento(eventoId) {
     return new Promise((resolve, reject) => {
       db.query(
-        `SELECT u.*, re.fecha_registro, re.notas 
-         FROM usuarios u
-         INNER JOIN registros_eventos re ON u.id = re.usuario_id
+        `SELECT v.*, re.fecha_registro, re.notas
+         FROM vecinos v
+         INNER JOIN registros_eventos re ON v.id = re.vecino_id
          WHERE re.evento_id = ?
          ORDER BY re.fecha_registro DESC`,
         [eventoId],

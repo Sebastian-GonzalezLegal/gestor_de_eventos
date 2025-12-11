@@ -1,5 +1,5 @@
 const Evento = require('../models/Evento');
-const Usuario = require('../models/Usuario');
+const Vecino = require('../models/Vecino');
 
 class EventoController {
   static async getAll(req, res) {
@@ -29,9 +29,9 @@ class EventoController {
         return res.status(404).json({ error: 'Evento no encontrado' });
       }
 
-      // Obtener usuarios del evento
-      const usuarios = await Evento.getUsuariosByEvento(id);
-      evento.usuarios = usuarios;
+      // Obtener vecinos del evento
+      const vecinos = await Evento.getVecinosByEvento(id);
+      evento.vecinos = vecinos;
 
       res.json(evento);
     } catch (error) {
@@ -41,15 +41,18 @@ class EventoController {
 
   static async create(req, res) {
     try {
-      const { nombre, descripcion, fecha_evento, hora_evento, lugar } = req.body;
+      const { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id } = req.body;
+
+      console.log('Datos recibidos para crear evento:', { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
 
       if (!nombre || !fecha_evento) {
         return res.status(400).json({ error: 'Nombre y fecha del evento son requeridos' });
       }
 
-      const evento = await Evento.create({ nombre, descripcion, fecha_evento, hora_evento, lugar });
+      const evento = await Evento.create({ nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
       res.status(201).json(evento);
     } catch (error) {
+      console.error('Error al crear evento:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -57,7 +60,9 @@ class EventoController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const { nombre, descripcion, fecha_evento, hora_evento, lugar } = req.body;
+      const { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id } = req.body;
+
+      console.log('Datos recibidos para actualizar evento:', { id, nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
 
       if (!nombre || !fecha_evento) {
         return res.status(400).json({ error: 'Nombre y fecha del evento son requeridos' });
@@ -68,9 +73,10 @@ class EventoController {
         return res.status(404).json({ error: 'Evento no encontrado' });
       }
 
-      const updated = await Evento.update(id, { nombre, descripcion, fecha_evento, hora_evento, lugar });
+      const updated = await Evento.update(id, { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
       res.json(updated);
     } catch (error) {
+      console.error('Error al actualizar evento:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -106,11 +112,11 @@ class EventoController {
     }
   }
 
-  static async getUsuarios(req, res) {
+  static async getVecinos(req, res) {
     try {
       const { id } = req.params;
-      const usuarios = await Evento.getUsuariosByEvento(id);
-      res.json(usuarios);
+      const vecinos = await Evento.getVecinosByEvento(id);
+      res.json(vecinos);
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

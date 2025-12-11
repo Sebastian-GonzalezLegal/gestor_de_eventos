@@ -1,45 +1,47 @@
 .detalle-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .detalle-grid > div {
-  background: #14151c;
-  padding: 12px;
-  border-radius: 10px;
+  background: var(--panel-2);
+  padding: 16px;
+  border-radius: 8px;
   border: 1px solid var(--border);
 }
 
 .eventos-list {
   display: grid;
-  gap: 12px;
-  margin-top: 12px;
+  gap: 16px;
+  margin-top: 16px;
 }
 
 .evento-item {
-  background: #14151c;
+  background: var(--panel-2);
   border-left: 4px solid var(--primary);
-  padding: 12px;
-  border-radius: 10px;
+  padding: 16px;
+  border-radius: 8px;
   border: 1px solid var(--border);
 }
 
 .evento-nombre {
   font-weight: 700;
   font-size: 16px;
-  margin-bottom: 4px;
+  color: var(--primary-dark);
+  margin-bottom: 6px;
 }
 
 .evento-fecha,
 .evento-lugar,
 .evento-fecha-registro,
 .evento-notas {
-  font-size: 13px;
-  color: #d1d5db;
+  font-size: 14px;
+  color: var(--text);
 }
 
 .evento-notas {
-  margin-top: 4px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-style: italic;
 }
-
