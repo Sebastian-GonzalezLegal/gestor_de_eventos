@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTimes } from 'react-icons/fa';
 import { subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
-import './Modal.css';
 
 const EventoForm = ({ evento, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -119,8 +118,8 @@ const EventoForm = ({ evento, onClose, onSave }) => {
   };
 
   return (
-    <div className="modal">
-      <div className="modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{evento ? 'Editar Evento' : 'Nuevo Evento'}</h3>
           <button className="close-btn" onClick={onClose}>&times;</button>
@@ -150,6 +149,7 @@ const EventoForm = ({ evento, onClose, onSave }) => {
                 value={formData.descripcion}
                 onChange={handleChange}
                 rows="3"
+                className="form-textarea"
               />
             </div>
 
@@ -191,6 +191,7 @@ const EventoForm = ({ evento, onClose, onSave }) => {
                 value={formData.subsecretaria_id}
                 onChange={handleChange}
                 disabled={loadingOptions}
+                className="form-select"
               >
                 <option value="">Seleccione una subsecretaría</option>
                 {subsecretarias.map((subsecretaria) => (
@@ -208,6 +209,7 @@ const EventoForm = ({ evento, onClose, onSave }) => {
                 value={formData.tipo_id}
                 onChange={handleChange}
                 disabled={loadingOptions}
+                className="form-select"
               >
                 <option value="">Seleccione un tipo</option>
                 {tipos.map((tipo) => (
@@ -225,6 +227,7 @@ const EventoForm = ({ evento, onClose, onSave }) => {
                 value={formData.subtipo_id}
                 onChange={handleChange}
                 disabled={loadingOptions || !formData.tipo_id}
+                className="form-select"
               >
                 <option value="">
                   {formData.tipo_id ? 'Seleccione un subtipo' : 'Primero seleccione un tipo'}
@@ -237,7 +240,7 @@ const EventoForm = ({ evento, onClose, onSave }) => {
               </select>
             </div>
 
-            <div className="form-actions">
+            <div className="modal-actions">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
                 <FaTimes /> Cancelar
               </button>

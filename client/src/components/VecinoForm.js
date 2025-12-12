@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTimes } from 'react-icons/fa';
 import { vecinosAPI } from '../services/api';
-import './Modal.css';
 
 const VecinoForm = ({ vecino, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -54,8 +53,8 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
   };
 
   return (
-    <div className="modal">
-      <div className="modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{vecino ? 'Editar Vecino' : 'Nuevo Vecino'}</h3>
           <button className="close-btn" onClick={onClose}>&times;</button>
@@ -70,57 +69,62 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
             <div className="form-group">
               <label>Nombre *</label>
               <input
-              type="text"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleChange}
-              required
-            />
-          </div>
+                type="text"
+                name="nombre"
+                value={formData.nombre}
+                onChange={handleChange}
+                required
+                placeholder="Ingrese nombre"
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Apellido *</label>
-            <input
-              type="text"
-              name="apellido"
-              value={formData.apellido}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className="form-group">
+              <label>Apellido *</label>
+              <input
+                type="text"
+                name="apellido"
+                value={formData.apellido}
+                onChange={handleChange}
+                required
+                placeholder="Ingrese apellido"
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Documento *</label>
-            <input
-              type="text"
-              name="documento"
-              value={formData.documento}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className="form-group">
+              <label>Documento *</label>
+              <input
+                type="text"
+                name="documento"
+                value={formData.documento}
+                onChange={handleChange}
+                required
+                placeholder="DNI o Pasaporte"
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
+            <div className="form-group">
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="ejemplo@correo.com"
+              />
+            </div>
 
-          <div className="form-group">
-            <label>Teléfono</label>
-            <input
-              type="text"
-              name="telefono"
-              value={formData.telefono}
-              onChange={handleChange}
-            />
-          </div>
+            <div className="form-group">
+              <label>Teléfono</label>
+              <input
+                type="text"
+                name="telefono"
+                value={formData.telefono}
+                onChange={handleChange}
+                placeholder="Teléfono de contacto"
+              />
+            </div>
 
-            <div className="form-actions">
+            <div className="modal-actions">
               <button type="button" className="btn btn-secondary" onClick={onClose}>
                 <FaTimes /> Cancelar
               </button>

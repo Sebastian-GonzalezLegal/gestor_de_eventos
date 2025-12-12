@@ -41,6 +41,13 @@ class EventoController {
 
   static async create(req, res) {
     try {
+      // Solo admins pueden crear eventos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden crear eventos'
+        });
+      }
+
       const { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id } = req.body;
 
       console.log('Datos recibidos para crear evento:', { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
@@ -59,6 +66,13 @@ class EventoController {
 
   static async update(req, res) {
     try {
+      // Solo admins pueden actualizar eventos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden actualizar eventos'
+        });
+      }
+
       const { id } = req.params;
       const { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id } = req.body;
 
@@ -83,6 +97,13 @@ class EventoController {
 
   static async delete(req, res) {
     try {
+      // Solo admins pueden eliminar eventos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden eliminar eventos'
+        });
+      }
+
       const { id } = req.params;
       const evento = await Evento.findById(id);
       
@@ -99,6 +120,13 @@ class EventoController {
 
   static async toggleActivo(req, res) {
     try {
+      // Solo admins pueden cambiar el estado de eventos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden cambiar el estado de eventos'
+        });
+      }
+
       const { id } = req.params;
       const evento = await Evento.toggleActivo(id);
       

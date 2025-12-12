@@ -27,6 +27,13 @@ class SubsecretariaController {
 
   static async create(req, res) {
     try {
+      // Solo admins pueden crear subsecretarías
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden crear subsecretarías'
+        });
+      }
+
       const { nombre } = req.body;
 
       if (!nombre) {
@@ -42,6 +49,13 @@ class SubsecretariaController {
 
   static async update(req, res) {
     try {
+      // Solo admins pueden actualizar subsecretarías
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden actualizar subsecretarías'
+        });
+      }
+
       const { id } = req.params;
       const { nombre } = req.body;
 
@@ -63,6 +77,13 @@ class SubsecretariaController {
 
   static async delete(req, res) {
     try {
+      // Solo admins pueden eliminar subsecretarías
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden eliminar subsecretarías'
+        });
+      }
+
       const { id } = req.params;
       const subsecretaria = await Subsecretaria.findById(id);
 

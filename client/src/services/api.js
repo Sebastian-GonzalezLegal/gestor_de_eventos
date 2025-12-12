@@ -9,6 +9,28 @@ const api = axios.create({
   },
 });
 
+// Interceptor para agregar token de autenticación
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Interceptor para manejar errores de autenticación
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Vecinos
 export const vecinosAPI = {
   getAll: () => api.get('/vecinos'),
@@ -76,6 +98,17 @@ export const subtiposAPI = {
   create: (data) => api.post('/subtipos', data),
   update: (id, data) => api.put(`/subtipos/${id}`, data),
   delete: (id) => api.delete(`/subtipos/${id}`),
+};
+
+// Autenticación
+export const authAPI = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (userData) => api.post('/auth/register', userData),
+  verify: () => api.get('/auth/verify'),
+  getAllUsers: () => api.get('/auth/users'),
+  updateUser: (id, data) => api.put(`/auth/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/auth/users/${id}`),
+  toggleUserActivo: (id) => api.patch(`/auth/users/${id}/toggle-activo`),
 };
 
 export default api;

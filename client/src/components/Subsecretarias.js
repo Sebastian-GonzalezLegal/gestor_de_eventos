@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { subsecretariasAPI } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
 
 const Subsecretarias = () => {
+  const { isAdmin } = useUser();
   const [subsecretarias, setSubsecretarias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -102,9 +104,11 @@ const Subsecretarias = () => {
       <div className="card">
         <div className="card-header">
           <h2>Subsecretarías</h2>
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            <FaPlus /> Nueva Subsecretaría
-          </button>
+          {isAdmin && (
+            <button className="btn btn-primary" onClick={openCreateModal}>
+              <FaPlus /> Nueva Subsecretaría
+            </button>
+          )}
         </div>
 
         {alert && (
@@ -123,22 +127,24 @@ const Subsecretarias = () => {
               <div key={subsecretaria.id} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="evento-header">
                   <h3>{subsecretaria.nombre}</h3>
-                  <div className="evento-actions">
-                    <button
-                      className="btn btn-sm btn-secondary"
-                      onClick={() => handleEdit(subsecretaria)}
-                      title="Editar"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(subsecretaria.id)}
-                      title="Eliminar"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
+                  {isAdmin && (
+                    <div className="evento-actions">
+                      <button
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => handleEdit(subsecretaria)}
+                        title="Editar"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(subsecretaria.id)}
+                        title="Eliminar"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="evento-content">
@@ -159,7 +165,7 @@ const Subsecretarias = () => {
         </div>
       </div>
 
-      {showModal && (
+      {showModal && isAdmin && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">

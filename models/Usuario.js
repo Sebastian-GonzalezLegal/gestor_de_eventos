@@ -1,0 +1,154 @@
+const db = require('../config/database');
+const bcrypt = require('bcryptjs');
+
+class Usuario {
+  static async findAll() {
+    return new Promise((resolve, reject) => {
+      db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios ORDER BY fecha_creacion DESC', (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  static async findById(id) {
+    return new Promise((resolve, reject) => {
+      db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = ?', [id], (err, results) => {
+        if (err) reject(err);
+        else resolve(results[0]);
+      });
+    });
+  }
+
+  static async findByEmail(email) {
+    return new Promise((resolve, reject) => {
+      db.query('SELECT * FROM usuarios WHERE email = ?', [email], (err, results) => {
+        if (err) reject(err);
+        else resolve(results[0]);
+      });
+    });
+  }
+
+  static async create(usuarioData) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { nombre, email, password, rol = 'user' } = usuarioData;
+
+        // Hash de la contraseña
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+        db.query(
+          'INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, ?)',
+          [nombre, email, hashedPassword, rol],
+          (err, results) => {
+            if (err) reject(err);
+            else resolve({
+              id: results.insertId,
+              nombre,
+              email,
+              rol,
+              activo: true,
+              fecha_creacion: new Date()
+            });
+          }
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  static async update(id, usuarioData) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const { nombre, email, password, rol } = usuarioData;
+        let query = 'UPDATE usuarios SET nombre = ?, email = ?, rol = ?';
+        let params = [nombre, email, rol];
+
+        // Si se proporciona una nueva contraseña, hacer hash
+        if (password) {
+          const saltRounds = 10;
+          const hashedPassword = await bcrypt.hash(password, saltRounds);
+          query += ', password = ?';
+          params.push(hashedPassword);
+        }
+
+        query += ' WHERE id = ?';
+        params.push(id);
+
+        db.query(query, params, (err, results) => {
+          if (err) reject(err);
+          else {
+            // Obtener el usuario actualizado
+            db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = ?', [id], (err2, results2) => {
+              if (err2) reject(err2);
+              else resolve(results2[0]);
+            });
+          }
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  static async delete(id) {
+    return new Promise((resolve, reject) => {
+      db.query('DELETE FROM usuarios WHERE id = ?', [id], (err, results) => {
+        if (err) reject(err);
+        else resolve(results);
+      });
+    });
+  }
+
+  static async toggleActivo(id) {
+    return new Promise((resolve, reject) => {
+      db.query('UPDATE usuarios SET activo = NOT activo WHERE id = ?', [id], (err, results) => {
+        if (err) reject(err);
+        else {
+          db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = ?', [id], (err2, results2) => {
+            if (err2) reject(err2);
+            else resolve(results2[0]);
+          });
+        }
+      });
+    });
+  }
+
+  // Método para verificar contraseña
+  static async verifyPassword(plainPassword, hashedPassword) {
+    return await bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  // Método para autenticar usuario
+  static async authenticate(email, password) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const user = await this.findByEmail(email);
+
+        if (!user) {
+          return resolve(null);
+        }
+
+        if (!user.activo) {
+          return resolve(null);
+        }
+
+        const isValidPassword = await this.verifyPassword(password, user.password);
+
+        if (!isValidPassword) {
+          return resolve(null);
+        }
+
+        // Retornar usuario sin contraseña
+        const { password: _, ...userWithoutPassword } = user;
+        resolve(userWithoutPassword);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+}
+
+module.exports = Usuario;

@@ -3,9 +3,11 @@ import { FaPlus, FaEdit, FaTrash, FaInfoCircle, FaBan, FaCheck, FaSearch } from 
 import { vecinosAPI } from '../services/api';
 import VecinoForm from './VecinoForm';
 import VecinoDetalle from './VecinoDetalle';
+import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
 
 const Vecinos = () => {
+  const { isAdmin } = useUser();
   const [vecinos, setVecinos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -113,9 +115,11 @@ const Vecinos = () => {
       <div className="card">
         <div className="card-header">
           <h2>Gestión de Vecinos</h2>
-          <button className="btn btn-primary" onClick={handleCreate}>
-            <FaPlus /> Nuevo Vecino
-          </button>
+          {isAdmin && (
+            <button className="btn btn-primary" onClick={handleCreate}>
+              <FaPlus /> Nuevo Vecino
+            </button>
+          )}
         </div>
 
         {alert && (
@@ -184,14 +188,39 @@ const Vecinos = () => {
                       </span>
                     </td>
                     <td>
-                      <div className="action-buttons">
-                        <button
-                          className="btn btn-secondary"
-                          onClick={() => handleEdit(vecino)}
-                          title="Editar"
-                        >
-                          <FaEdit />
-                        </button>
+                      {isAdmin ? (
+                        <div className="action-buttons">
+                          <button
+                            className="btn btn-secondary"
+                            onClick={() => handleEdit(vecino)}
+                            title="Editar"
+                          >
+                            <FaEdit />
+                          </button>
+                          <button
+                            className="btn-detalle"
+                            onClick={() => handleDetalle(vecino.id)}
+                            disabled={detalleLoading && detalleVecino?.id === vecino.id}
+                            title="Ver detalle"
+                          >
+                            <FaInfoCircle /> {detalleLoading && detalleVecino?.id === vecino.id ? 'Cargando...' : ''}
+                          </button>
+                          <button
+                            className={`btn ${vecino.activo ? 'btn-warning' : 'btn-success'}`}
+                            onClick={() => handleToggleActivo(vecino.id)}
+                            title={vecino.activo ? 'Inhabilitar' : 'Habilitar'}
+                          >
+                            {vecino.activo ? <><FaBan /></> : <><FaCheck /></>}
+                          </button>
+                          <button
+                            className="btn btn-danger"
+                            onClick={() => handleDelete(vecino.id)}
+                            title="Eliminar"
+                          >
+                            <FaTrash />
+                          </button>
+                        </div>
+                      ) : (
                         <button
                           className="btn-detalle"
                           onClick={() => handleDetalle(vecino.id)}
@@ -200,21 +229,7 @@ const Vecinos = () => {
                         >
                           <FaInfoCircle /> {detalleLoading && detalleVecino?.id === vecino.id ? 'Cargando...' : ''}
                         </button>
-                        <button
-                          className={`btn ${vecino.activo ? 'btn-warning' : 'btn-success'}`}
-                          onClick={() => handleToggleActivo(vecino.id)}
-                          title={vecino.activo ? 'Inhabilitar' : 'Habilitar'}
-                        >
-                          {vecino.activo ? <><FaBan /></> : <><FaCheck /></>}
-                        </button>
-                        <button
-                          className="btn btn-danger"
-                          onClick={() => handleDelete(vecino.id)}
-                          title="Eliminar"
-                        >
-                          <FaTrash />
-                        </button>
-                      </div>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -224,7 +239,7 @@ const Vecinos = () => {
         </div>
       </div>
 
-      {showModal && (
+      {showModal && isAdmin && (
         <VecinoForm
           vecino={editingVecino}
           onClose={() => setShowModal(false)}

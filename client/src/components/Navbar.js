@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
 import {
   FaCog,
   FaChevronDown,
@@ -14,14 +15,17 @@ import {
   FaTags,
   FaTag,
   FaSignOutAlt,
-  FaUserCircle
+  FaUserCircle,
+  FaUserCog
 } from 'react-icons/fa';
 import { vecinosAPI, eventosAPI, registrosAPI, subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
 import './Navbar.css';
 
-const Navbar = () => {
+const Navbar = ({ user, onLogout }) => {
+  const { isAdmin } = useUser();
   const [showConfigMenu, setShowConfigMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
@@ -33,19 +37,25 @@ const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Cerrar resultados de búsqueda al hacer click fuera
+  // Cerrar resultados de búsqueda y menús al hacer click fuera
   useEffect(() => {
     const handleClickOutside = (event) => {
       // Solo cerrar si el clic no es dentro del contenedor de búsqueda
       if (searchRef.current && !searchRef.current.contains(event.target)) {
-        // Verificar que no sea un clic en elementos del menú de configuración
+        // Verificar que no sea un clic en elementos del menú de configuración o usuario
         const target = event.target;
         const isConfigMenuClick = target.closest('.dropdown-toggle') ||
                                  target.closest('.dropdown-menu') ||
                                  target.closest('.dropdown-item');
+        const isUserMenuClick = target.closest('.user-profile-btn') ||
+                               target.closest('.user-dropdown');
 
         if (!isConfigMenuClick) {
           setShowSearchResults(false);
+        }
+
+        if (!isUserMenuClick) {
+          setShowUserMenu(false);
         }
       }
     };
@@ -260,6 +270,15 @@ const Navbar = () => {
   const closeMenus = () => {
     setShowConfigMenu(false);
     setShowMobileMenu(false);
+    setShowUserMenu(false);
+  };
+
+  const handleUserMenuClick = () => {
+    setShowUserMenu(!showUserMenu);
+    // Cerrar otros menús
+    setShowConfigMenu(false);
+    setShowMobileMenu(false);
+    setShowSearchResults(false);
   };
 
   const handleConfigMouseEnter = () => {
@@ -276,7 +295,7 @@ const Navbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
-  const isConfigActive = () => ['/subsecretarias', '/tipos', '/subtipos'].includes(location.pathname);
+  const isConfigActive = () => ['/subsecretarias', '/tipos', '/subtipos', '/usuarios'].includes(location.pathname);
 
   return (
     <nav className="navbar">
@@ -286,7 +305,7 @@ const Navbar = () => {
           <div className="navbar-logo-wrapper">
             <div className="logo-container">
               <img
-                src="/logo_sin_fondo.png"
+                src="/logo_sin_fondo_logo.png"
                 alt="Logo Municipio de Tigre"
                 className="navbar-logo-main"
               />
@@ -381,8 +400,8 @@ const Navbar = () => {
               <FaCalendarAlt />
               <span className="tab-text">Eventos</span>
             </Link>
-            <div 
-              className="dropdown" 
+            <div
+              className="dropdown"
               onMouseEnter={handleConfigMouseEnter}
               onMouseLeave={handleConfigMouseLeave}
             >
@@ -430,15 +449,59 @@ const Navbar = () => {
                       <span className="dropdown-item-desc">Subcategorías</span>
                     </div>
                   </Link>
+                  <Link
+                    to="/usuarios"
+                    className={`dropdown-item ${isActive('/usuarios') ? 'active' : ''}`}
+                    onClick={closeMenus}
+                  >
+                    <div className="dropdown-icon-wrapper"><FaUserCog /></div>
+                    <div className="dropdown-item-content">
+                      <span className="dropdown-item-title">Usuarios</span>
+                      <span className="dropdown-item-desc">Gestión de usuarios</span>
+                    </div>
+                  </Link>
                 </div>
               )}
             </div>
           </div>
           
           <div className="navbar-user">
-             <button className="user-profile-btn">
+            {user ? (
+              <div className="user-menu-container">
+                <button className="user-profile-btn" onClick={handleUserMenuClick}>
+                  <FaUserCircle className="user-avatar" />
+                  <span className="user-name">{user.nombre}</span>
+                  <FaChevronDown className={`user-chevron ${showUserMenu ? 'rotated' : ''}`} />
+                </button>
+                {showUserMenu && (
+                  <div className="user-dropdown">
+                    <div className="user-info">
+                      <div className="user-info-name">{user.nombre}</div>
+                      <div className="user-info-email">{user.email}</div>
+                      <div className="user-info-role">
+                        {user.rol === 'admin' ? 'Administrador' :
+                         user.rol === 'visitante' ? 'Visitante' : 'Usuario'}
+                      </div>
+                    </div>
+                    <div className="user-divider"></div>
+                    <button
+                      className="user-logout-btn"
+                      onClick={() => {
+                        onLogout();
+                        setShowUserMenu(false);
+                      }}
+                    >
+                      <FaSignOutAlt />
+                      Cerrar Sesión
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="user-placeholder">
                 <FaUserCircle className="user-avatar" />
-             </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -534,13 +597,24 @@ const Navbar = () => {
               <div className="mobile-menu-item-title">Subtipos</div>
             </div>
           </Link>
-          
-          <div className="mobile-footer-actions">
+
+          <Link
+            to="/usuarios"
+            className={`mobile-menu-item ${isActive('/usuarios') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaUserCog /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Usuarios</div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="mobile-footer-actions">
              <button className="mobile-logout-btn">
                 <FaSignOutAlt /> Cerrar Sesión
              </button>
           </div>
-        </div>
       </div>
     </nav>
   );

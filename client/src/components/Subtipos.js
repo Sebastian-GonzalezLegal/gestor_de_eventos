@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaFilter } from 'react-icons/fa';
 import { subtiposAPI, tiposAPI } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
 
 const Subtipos = () => {
+  const { isAdmin } = useUser();
   const [subtipos, setSubtipos] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -190,9 +192,11 @@ const Subtipos = () => {
                 </button>
               )}
             </div>
-            <button className="btn btn-primary" onClick={openCreateModal}>
-              <FaPlus /> Nuevo Subtipo
-            </button>
+            {isAdmin && (
+              <button className="btn btn-primary" onClick={openCreateModal}>
+                <FaPlus /> Nuevo Subtipo
+              </button>
+            )}
           </div>
         </div>
 
@@ -217,22 +221,24 @@ const Subtipos = () => {
               <div key={subtipo.id} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="evento-header">
                   <h3>{subtipo.nombre}</h3>
-                  <div className="evento-actions">
-                    <button
-                      className="btn btn-sm btn-secondary"
-                      onClick={() => handleEdit(subtipo)}
-                      title="Editar"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(subtipo.id)}
-                      title="Eliminar"
-                    >
-                      <FaTrash />
-                    </button>
-                  </div>
+                  {isAdmin && (
+                    <div className="evento-actions">
+                      <button
+                        className="btn btn-sm btn-secondary"
+                        onClick={() => handleEdit(subtipo)}
+                        title="Editar"
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(subtipo.id)}
+                        title="Eliminar"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="evento-content">
@@ -257,7 +263,7 @@ const Subtipos = () => {
         </div>
       </div>
 
-      {showModal && (
+      {showModal && isAdmin && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">

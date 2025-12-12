@@ -1,47 +1,28 @@
 .detalle-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 16px;
+  margin-bottom: 24px;
 }
 
 .detalle-grid > div {
-  background: var(--panel-2);
+  background: #f8fafc;
   padding: 16px;
   border-radius: 8px;
   border: 1px solid var(--border);
+  transition: transform 0.2s;
 }
 
-.eventos-list {
-  display: grid;
-  gap: 16px;
-  margin-top: 16px;
+.detalle-grid > div:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
 }
 
-.evento-item {
-  background: var(--panel-2);
-  border-left: 4px solid var(--primary);
-  padding: 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border);
-}
-
-.evento-nombre {
-  font-weight: 700;
-  font-size: 16px;
-  color: var(--primary-dark);
-  margin-bottom: 6px;
-}
-
-.evento-fecha,
-.evento-lugar,
-.evento-fecha-registro,
-.evento-notas {
-  font-size: 14px;
-  color: var(--text);
-}
-
-.evento-notas {
-  margin-top: 6px;
+.detalle-grid strong {
+  display: block;
   color: var(--muted);
-  font-style: italic;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
 }

@@ -65,6 +65,13 @@ class VecinoController {
 
   static async create(req, res) {
     try {
+      // Solo admins pueden crear vecinos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden crear vecinos'
+        });
+      }
+
       const { nombre, apellido, email, telefono, documento } = req.body;
 
       if (!nombre || !apellido || !documento) {
@@ -86,6 +93,13 @@ class VecinoController {
 
   static async update(req, res) {
     try {
+      // Solo admins pueden actualizar vecinos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden actualizar vecinos'
+        });
+      }
+
       const { id } = req.params;
       const { nombre, apellido, email, telefono, documento } = req.body;
 
@@ -115,6 +129,13 @@ class VecinoController {
 
   static async delete(req, res) {
     try {
+      // Solo admins pueden eliminar vecinos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden eliminar vecinos'
+        });
+      }
+
       const { id } = req.params;
       const vecino = await Vecino.findById(id);
 
@@ -131,6 +152,13 @@ class VecinoController {
 
   static async toggleActivo(req, res) {
     try {
+      // Solo admins pueden cambiar el estado de vecinos
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden cambiar el estado de vecinos'
+        });
+      }
+
       const { id } = req.params;
       const vecino = await Vecino.toggleActivo(id);
 

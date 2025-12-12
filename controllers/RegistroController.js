@@ -29,6 +29,13 @@ class RegistroController {
 
   static async create(req, res) {
     try {
+      // Los visitantes no pueden inscribir a nadie
+      if (req.user.rol === 'visitante') {
+        return res.status(403).json({
+          error: 'Los visitantes no pueden realizar inscripciones'
+        });
+      }
+
       const { vecino_id, evento_id, notas } = req.body;
 
       if (!vecino_id || !evento_id) {
@@ -56,6 +63,13 @@ class RegistroController {
 
   static async delete(req, res) {
     try {
+      // Los visitantes no pueden eliminar registros
+      if (req.user.rol === 'visitante') {
+        return res.status(403).json({
+          error: 'Los visitantes no pueden eliminar registros'
+        });
+      }
+
       const { id } = req.params;
       const registro = await RegistroEvento.findById(id);
       
@@ -72,6 +86,12 @@ class RegistroController {
 
   static async registerByDocumento(req, res) {
     try {
+      // Los visitantes no pueden inscribir a nadie
+      if (req.user.rol === 'visitante') {
+        return res.status(403).json({
+          error: 'Los visitantes no pueden realizar inscripciones'
+        });
+      }
       const { documento, evento_id, notas } = req.body;
 
       if (!documento || !evento_id) {

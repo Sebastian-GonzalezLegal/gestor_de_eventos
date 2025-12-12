@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaList } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { tiposAPI } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 import './Tipos.css';
 
 const Tipos = () => {
+  const { isAdmin } = useUser();
   const navigate = useNavigate();
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -104,9 +106,11 @@ const Tipos = () => {
       <div className="card">
         <div className="card-header">
           <h2>Tipos</h2>
-          <button className="btn btn-primary" onClick={openCreateModal}>
-            <FaPlus /> Nuevo Tipo
-          </button>
+          {isAdmin && (
+            <button className="btn btn-primary" onClick={openCreateModal}>
+              <FaPlus /> Nuevo Tipo
+            </button>
+          )}
         </div>
 
         {alert && (
@@ -135,20 +139,24 @@ const Tipos = () => {
                     >
                       <FaList /> Subtipos
                     </button>
-                    <button
-                      className="btn btn-sm btn-secondary"
-                      onClick={() => handleEdit(tipo)}
-                      title="Editar"
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(tipo.id)}
-                      title="Eliminar"
-                    >
-                      <FaTrash />
-                    </button>
+                    {isAdmin && (
+                      <>
+                        <button
+                          className="btn btn-sm btn-secondary"
+                          onClick={() => handleEdit(tipo)}
+                          title="Editar"
+                        >
+                          <FaEdit />
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={() => handleDelete(tipo.id)}
+                          title="Eliminar"
+                        >
+                          <FaTrash />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -170,7 +178,7 @@ const Tipos = () => {
         </div>
       </div>
 
-      {showModal && (
+      {showModal && isAdmin && (
         <div className="modal">
           <div className="modal-content">
             <div className="modal-header">

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers } from 'react-icons/fa';
 import { registrosAPI, vecinosAPI, eventosAPI } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 import './RegistroEvento.css';
 
 const RegistroEvento = () => {
+  const { isVisitor } = useUser();
   const [vecinos, setVecinos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [vecinoEncontrado, setVecinoEncontrado] = useState(null);
@@ -54,20 +56,19 @@ const RegistroEvento = () => {
       const response = await vecinosAPI.search(term);
       setVecinos(response.data);
     } catch (error) {
-      console.error('Error buscando vecinos', error);
+      showAlert('Error en la búsqueda', 'error');
     }
   };
 
   const seleccionarVecino = async (vecino) => {
     setVecinoEncontrado(vecino);
-    setEventosVecino([]);
-    
     try {
-      const response = await vecinosAPI.getEventos(vecino.id);
-      setEventosVecino(response.data);
+      const response = await registrosAPI.getAll();
+      // Filtrar eventos de este vecino
+      const eventosDelVecino = response.data.filter(registro => registro.vecino_id === vecino.id);
+      setEventosVecino(eventosDelVecino);
     } catch (error) {
-      console.error('Error al cargar historial del vecino', error);
-      showAlert('Error al cargar el historial del vecino', 'warning');
+      showAlert('Error al cargar historial', 'error');
     }
   };
 
@@ -82,39 +83,28 @@ const RegistroEvento = () => {
     e.preventDefault();
 
     if (!vecinoEncontrado) {
-      showAlert('Debe seleccionar un vecino primero', 'error');
+      showAlert('Debe seleccionar un vecino', 'error');
       return;
     }
-
-    if (!eventoSeleccionado) {
-      showAlert('Debe seleccionar un evento', 'error');
-      return;
-    }
-
-    setLoading(true);
 
     try {
+      setLoading(true);
       await registrosAPI.registerByDocumento({
         documento: vecinoEncontrado.documento,
         evento_id: parseInt(eventoSeleccionado),
         notas: notas,
       });
 
-      showAlert('Vecino registrado al evento correctamente', 'success');
-
-      // Recargar eventos del vecino
-      const response = await vecinosAPI.getEventos(vecinoEncontrado.id);
-      setEventosVecino(response.data);
-      
-      // Limpiar formulario
+      showAlert('Registro exitoso', 'success');
       setEventoSeleccionado('');
       setNotas('');
+
+      // Recargar eventos del vecino
+      const response = await registrosAPI.getAll();
+      const eventosDelVecino = response.data.filter(registro => registro.vecino_id === vecinoEncontrado.id);
+      setEventosVecino(eventosDelVecino);
     } catch (error) {
-      if (error.response?.status === 400 && error.response.data.error.includes('ya está registrado')) {
-        showAlert('El Vecino ya está registrado en este evento', 'error');
-      } else {
-        showAlert(error.response?.data?.error || 'Error al registrar Vecino', 'error');
-      }
+      showAlert(error.response?.data?.error || 'Error al registrar', 'error');
     } finally {
       setLoading(false);
     }
@@ -206,6 +196,7 @@ const RegistroEvento = () => {
                             className="btn btn-sm btn-primary"
                             onClick={() => seleccionarVecino(vecino)}
                             title="Seleccionar para registrar"
+                            disabled={isVisitor}
                           >
                             <FaUserCheck /> Seleccionar
                           </button>
@@ -237,85 +228,86 @@ const RegistroEvento = () => {
             <div className="registro-grid">
               {/* COLUMNA 1: FORMULARIO */}
               <div className="registro-form-column">
-                <div className="card">
-                  <h3>Registrar a Nuevo Evento</h3>
-                  <form onSubmit={handleRegistro}>
-                    <div className="form-group">
-                      <label>Seleccionar Evento *</label>
-                      <select
-                        value={eventoSeleccionado}
-                        onChange={(e) => setEventoSeleccionado(e.target.value)}
-                        required
-                        className="form-select"
-                      >
-                        <option value="">-- Seleccione un evento --</option>
-                        {eventos
-                          .filter(e => e.activo)
-                          .map((evento) => (
-                            <option key={evento.id} value={evento.id}>
-                              {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
-                              {evento.subsecretaria_nombre && ` (${evento.subsecretaria_nombre})`}
-                            </option>
-                          ))}
-                      </select>
-                    </div>
+                {!isVisitor && (
+                  <div className="card">
+                    <h3>Registrar a Nuevo Evento</h3>
+                    <form onSubmit={handleRegistro}>
+                      <div className="form-group">
+                        <label>Seleccionar Evento *</label>
+                        <select
+                          value={eventoSeleccionado}
+                          onChange={(e) => setEventoSeleccionado(e.target.value)}
+                          required
+                          className="form-select"
+                        >
+                          <option value="">-- Seleccione un evento --</option>
+                          {eventos
+                            .filter(e => e.activo)
+                            .map((evento) => (
+                              <option key={evento.id} value={evento.id}>
+                                {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
 
-                    <div className="form-group">
-                      <label>Notas (opcional)</label>
-                      <textarea
-                        value={notas}
-                        onChange={(e) => setNotas(e.target.value)}
-                        rows="3"
-                        placeholder="Notas adicionales sobre el registro..."
-                        className="form-textarea"
-                      />
-                    </div>
+                      <div className="form-group">
+                        <label>Notas (opcional)</label>
+                        <textarea
+                          value={notas}
+                          onChange={(e) => setNotas(e.target.value)}
+                          placeholder="Notas adicionales sobre el registro..."
+                          className="form-textarea"
+                          rows="3"
+                        />
+                      </div>
 
-                    <div className="form-actions">
-                      <button
-                        type="submit"
-                        className="btn btn-success btn-block"
-                        disabled={loading || !eventoSeleccionado}
-                      >
-                        <FaUserCheck /> {loading ? 'Registrando...' : 'Confirmar Registro'}
-                      </button>
-                    </div>
-                  </form>
-                </div>
+                      <div className="form-actions">
+                        <button
+                          type="submit"
+                          className="btn btn-success btn-block"
+                          disabled={loading || !eventoSeleccionado}
+                        >
+                          <FaUserCheck /> {loading ? 'Registrando...' : 'Confirmar Registro'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                )}
               </div>
 
               {/* COLUMNA 2: HISTORIAL */}
               <div className="historial-column">
                 <div className="card">
                   <h3>Historial de Eventos</h3>
-                  {eventosVecino.length > 0 ? (
-                    <div className="eventos-list">
-                      {eventosVecino.map((evento) => (
-                        <div key={evento.id} className="evento-item">
-                          <div className="evento-nombre">{evento.nombre}</div>
-                          <div className="evento-fecha">
-                            {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
-                            {evento.hora_evento && ` - ${evento.hora_evento}`}
-                          </div>
-                          {evento.lugar && <div className="evento-lugar">{evento.lugar}</div>}
-                          {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && (
-                            <div className="evento-categoria">
-                              {evento.subsecretaria_nombre && <span>🏢 {evento.subsecretaria_nombre}</span>}
-                              {evento.tipo_nombre && <span>🏷️ {evento.tipo_nombre}</span>}
-                              {evento.subtipo_nombre && <span>🏷️ {evento.subtipo_nombre}</span>}
+                  <div className="eventos-lista">
+                    {eventosVecino && eventosVecino.length > 0 ? (
+                      eventosVecino.map((evento) => (
+                        <div key={evento.id_registro} className="evento-item">
+                          <div className="evento-header">
+                            <div className="evento-titulo">{evento.nombre}</div>
+                            <div className="evento-fecha">
+                              {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
                             </div>
-                          )}
+                          </div>
+                          <div className="evento-detalles">
+                            <span className="evento-lugar">📍 {evento.lugar || 'Sin lugar'}</span>
+                            <span className="evento-hora">🕒 {evento.hora_evento || 'Sin hora'}</span>
+                            <span className="evento-subsecretaria">🏢 {evento.subsecretaria_nombre || 'Sin subsecretaría'}</span>
+                            <span className="evento-tipo">🏷️ {evento.tipo_nombre || 'Sin tipo'}</span>
+                            {evento.subtipo_nombre && <span>🏷️ {evento.subtipo_nombre}</span>}
+                          </div>
                           <div className="evento-fecha-registro">
                             Registrado: {new Date(evento.fecha_registro).toLocaleString('es-ES')}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="no-events-message">
-                      <p>Este vecino no ha participado en eventos recientes.</p>
-                    </div>
-                  )}
+                      ))
+                    ) : (
+                      <div className="no-events-message">
+                        <p>Este vecino no ha participado en eventos recientes.</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

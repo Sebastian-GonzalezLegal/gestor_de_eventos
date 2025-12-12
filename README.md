@@ -1,16 +1,33 @@
 # Gestor de Usuarios para Eventos
 
-Sistema web para gestionar usuarios y eventos, permitiendo registrar usuarios a múltiples eventos.
+Sistema web para gestionar usuarios y eventos, permitiendo registrar usuarios a múltiples eventos con sistema de autenticación seguro.
 
 ## Características
 
-- **ABM de Usuarios**: Crear, editar, eliminar e inhabilitar usuarios
+### 🔐 Sistema de Autenticación
+- **Login seguro** con email y contraseña
+- **Registro de usuarios** solo accesible desde dentro del sistema (requiere autenticación)
+- **Usuario administrador inicial** para gestionar el sistema
+- **Protección de rutas** - acceso restringido según permisos
+- **Sesiones JWT** persistentes
+
+### 👥 Gestión de Usuarios
+- **ABM completo**: Crear, editar, eliminar e inhabilitar usuarios
+- **Búsqueda avanzada** por nombre, apellido, documento o email
+- **Estados activos/inactivos** sin eliminación física
+- **Historial de eventos** por usuario
+
+### 📅 Gestión de Eventos
 - **ABM de Eventos**: Crear, editar, eliminar e inhabilitar eventos
-- **Registro de Usuarios a Eventos**: 
-  - Búsqueda de usuarios por documento
-  - Visualización de eventos anteriores del usuario
-  - Registro a nuevos eventos
-  - Validación para evitar registros duplicados
+- **Categorización**: Subsecretarías, Tipos y Subtipos
+- **Registro de participantes** con validaciones
+- **Búsqueda y filtrado** avanzado
+
+### 📝 Registro de Usuarios a Eventos
+- **Búsqueda rápida** de usuarios por documento
+- **Visualización** de eventos anteriores del usuario
+- **Registro inteligente** con validación de duplicados
+- **Gestión de notas** por registro
 
 ## Tecnologías
 
@@ -49,16 +66,25 @@ cd ..
 ```
 
 4. **Configurar la base de datos:**
-   - Crear una base de datos MySQL
-   - Ejecutar el script `database/schema.sql` para crear las tablas
-   - O ejecutar manualmente:
+   - Crear una base de datos MySQL llamada `gestor_eventos`
+   - **Opción recomendada**: Ejecutar el script completo de inicialización:
+```sql
+mysql -u root -p < init-database.sql
+```
+   Este script crea todas las tablas, datos de ejemplo y el usuario administrador.
+
+   - **Opción alternativa**: Si prefieres crear manualmente:
 ```sql
 mysql -u root -p < database/schema.sql
 ```
+   Luego crear el usuario admin con:
+```bash
+npm run create-admin
+```
 
 5. **Configurar variables de entorno:**
-   - Copiar `.env.example` a `.env`
-   - Editar `.env` con tus credenciales de MySQL:
+   - Copiar `.env.example` a `.env` (si existe)
+   - O crear `.env` con tus credenciales de MySQL:
 ```
 PORT=5000
 DB_HOST=localhost
@@ -66,6 +92,7 @@ DB_USER=root
 DB_PASSWORD=tu_password
 DB_NAME=gestor_eventos
 DB_PORT=3306
+JWT_SECRET=tu_clave_secreta_para_jwt
 ```
 
 ## Ejecución
@@ -80,6 +107,14 @@ npm run dev-all
 Esto iniciará automáticamente el backend (puerto 5000) y el frontend (puerto 3000).
 
 Luego abre tu navegador en: **http://localhost:3000**
+
+#### 🔑 Primer Acceso
+Después de la instalación, puedes acceder con las credenciales del administrador:
+
+- **Email:** `admin@municipio.gob.ar`
+- **Contraseña:** `Admin123!`
+
+> ⚠️ **Importante:** Cambia la contraseña del administrador después del primer login por seguridad.
 
 ### Desarrollo Detallado
 
@@ -149,16 +184,25 @@ gestor_usuarios_eventos/
 
 ## API Endpoints
 
-### Usuarios
-- `GET /api/usuarios` - Obtener todos los usuarios
-- `GET /api/usuarios/:id` - Obtener usuario por ID
-- `GET /api/usuarios/por-documento/:documento` - Buscar usuario por documento
-- `GET /api/usuarios/search?q=termino` - Buscar usuarios
-- `GET /api/usuarios/:id/eventos` - Obtener eventos de un usuario
-- `POST /api/usuarios` - Crear usuario
-- `PUT /api/usuarios/:id` - Actualizar usuario
-- `DELETE /api/usuarios/:id` - Eliminar usuario
-- `PATCH /api/usuarios/:id/toggle-activo` - Habilitar/Inhabilitar usuario
+### 🔐 Autenticación
+- `POST /api/auth/login` - Iniciar sesión
+- `POST /api/auth/register` - Registrar nuevo usuario (requiere autenticación)
+- `GET /api/auth/verify` - Verificar token JWT
+- `GET /api/auth/users` - Obtener todos los usuarios (solo admin)
+- `PUT /api/auth/users/:id` - Actualizar usuario (solo admin o propio perfil)
+- `DELETE /api/auth/users/:id` - Eliminar usuario (solo admin)
+- `PATCH /api/auth/users/:id/toggle-activo` - Activar/desactivar usuario (solo admin)
+
+### 👥 Usuarios (Vecinos)
+- `GET /api/vecinos` - Obtener todos los vecinos
+- `GET /api/vecinos/:id` - Obtener vecino por ID
+- `GET /api/vecinos/por-documento/:documento` - Buscar vecino por documento
+- `GET /api/vecinos/search?q=termino` - Buscar vecinos
+- `GET /api/vecinos/:id/eventos` - Obtener eventos de un vecino
+- `POST /api/vecinos` - Crear vecino
+- `PUT /api/vecinos/:id` - Actualizar vecino
+- `DELETE /api/vecinos/:id` - Eliminar vecino
+- `PATCH /api/vecinos/:id/toggle-activo` - Habilitar/Inhabilitar vecino
 
 ### Eventos
 - `GET /api/eventos` - Obtener todos los eventos
@@ -179,20 +223,43 @@ gestor_usuarios_eventos/
 
 ## Uso
 
-1. **Registrar Usuarios**: Ve a la sección "Usuarios" y crea nuevos usuarios con sus datos.
+### 🔐 Acceso al Sistema
+1. **Iniciar Sesión**: Usa las credenciales del administrador para acceder por primera vez.
+2. **Crear Usuarios**: Los administradores pueden crear nuevos usuarios desde dentro del sistema.
+3. **Gestionar Permisos**: Los usuarios con rol 'admin' tienen acceso completo al sistema.
 
-2. **Crear Eventos**: Ve a la sección "Eventos" y crea los eventos que necesites.
+### 👥 Gestión de Vecinos
+1. **Crear Vecinos**: Ve a la sección "Vecinos" y registra nuevos usuarios del sistema con sus datos personales.
+2. **Buscar y Editar**: Utiliza la búsqueda en tiempo real para encontrar vecinos por nombre, apellido, documento o email.
 
-3. **Registrar Usuarios a Eventos**: 
+### 📅 Gestión de Eventos
+1. **Crear Eventos**: Ve a la sección "Eventos" y crea los eventos que necesites.
+2. **Organizar por Categorías**: Asigna subsecretarías, tipos y subtipos a cada evento para mejor organización.
+
+### 📝 Registro de Vecinos a Eventos
+1. **Registro Rápido**:
    - Ve a la sección "Registro"
-   - Ingresa el documento del usuario
-   - El sistema mostrará si el usuario existe y sus eventos anteriores
-   - Selecciona un evento y registra al usuario
+   - Ingresa el documento del vecino
+   - El sistema mostrará si el vecino existe y sus eventos anteriores
+   - Selecciona un evento y registra al vecino
+2. **Validaciones Automáticas**: El sistema previene registros duplicados y verifica la existencia del vecino.
+
+## 🔒 Seguridad
+
+- **Autenticación JWT**: Tokens seguros con expiración de 24 horas
+- **Hash de Contraseñas**: Bcrypt para almacenamiento seguro de contraseñas
+- **Protección de Rutas**: Middleware que verifica autenticación en todas las rutas protegidas
+- **Roles y Permisos**: Sistema de roles (admin/user) para control de acceso
+- **Validación de Datos**: Sanitización y validación de todas las entradas
+- **HTTPS Recomendado**: Para producción, configura HTTPS en el servidor
 
 ## Notas
 
-- El documento de usuario debe ser único
-- Un usuario no puede estar registrado dos veces en el mismo evento
-- Los usuarios y eventos pueden ser habilitados/inhabilitados sin eliminarlos
-- La búsqueda de usuarios es en tiempo real mientras escribes
+- El documento de vecino debe ser único
+- Un vecino no puede estar registrado dos veces en el mismo evento
+- Los vecinos y eventos pueden ser habilitados/inhabilitados sin eliminarlos
+- La búsqueda de vecinos es en tiempo real mientras escribes
+- Solo usuarios autenticados pueden acceder al sistema
+- Los administradores pueden gestionar usuarios, pero no pueden eliminarse a sí mismos
+- El registro de nuevos usuarios solo puede hacerse desde dentro del sistema (requiere login)
 

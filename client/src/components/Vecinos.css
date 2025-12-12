@@ -2,79 +2,30 @@
   padding: 16px 0;
 }
 
-/* Estilos específicos para la card-header en Vecinos */
-.vecinos .card-header {
-  flex-wrap: wrap;
-  gap: 15px;
-}
-
-.vecinos .card-header h2 {
-  flex: 1;
-  min-width: 200px;
-  margin: 0;
-}
-
-.vecinos .card-header .btn {
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-/* Responsive design para Vecinos */
-@media (max-width: 768px) {
-  .vecinos .card-header {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
-  }
-
-  .vecinos .card-header h2 {
-    margin-bottom: 15px;
-  }
-
-  .vecinos .card-header .btn {
-    align-self: center;
-    width: auto;
-    min-width: 150px;
-  }
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  font-size: 18px;
-  color: var(--muted);
-}
-
-/* Estilos específicos para el botón de detalle */
+/* Specific button style for details (can be refactored to .btn-info in future) */
 .btn-detalle {
-  background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+  background: linear-gradient(135deg, var(--info) 0%, var(--info-dark) 100%);
   color: white;
   border: none;
   padding: 6px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 13px;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(23, 162, 184, 0.3);
-  transform: translateY(0);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 6px rgba(23, 162, 184, 0.2);
 }
 
 .btn-detalle:hover {
   background: linear-gradient(135deg, #138496 0%, #117a8b 100%);
   transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(23, 162, 184, 0.4);
+  box-shadow: 0 6px 12px rgba(23, 162, 184, 0.3);
 }
 
 .btn-detalle:active {
-  transform: translateY(0);
-  box-shadow: 0 1px 2px rgba(23, 162, 184, 0.3);
+  transform: translateY(1px);
 }
 
 .btn-detalle:disabled {
@@ -82,140 +33,4 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
-}
-
-/* Estilos del buscador */
-.search-box {
-  margin-bottom: 20px;
-  padding: 0 20px;
-}
-
-.search-input-container {
-  position: relative;
-  max-width: 600px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-  border-radius: 12px;
-  border: 2px solid rgba(220, 53, 69, 0.1);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: visible;
-  z-index: 1;
-}
-
-.search-input-container:focus-within {
-  border-color: rgba(220, 53, 69, 0.3);
-  box-shadow: 0 8px 25px rgba(220, 53, 69, 0.15);
-  transform: translateY(-1px);
-}
-
-.search-icon {
-  color: #dc3545;
-  font-size: 16px;
-  margin-left: 15px;
-  margin-right: 10px;
-  transition: color 0.2s ease;
-  position: relative;
-  z-index: 1;
-  flex-shrink: 0;
-}
-
-.search-input-container:focus-within .search-icon {
-  color: #b02a37;
-  transform: scale(1.1);
-}
-
-.search-box .search-input-container .search-input {
-  flex: 1;
-  padding: 15px 15px 15px 0 !important;
-  border: none !important;
-  outline: none !important;
-  background: transparent !important;
-  font-size: 16px;
-  color: #333;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  min-width: auto !important;
-  position: relative !important;
-  z-index: 2 !important;
-}
-
-.search-input::placeholder {
-  color: #999;
-  font-weight: 400;
-}
-
-.search-input:focus {
-  color: #333;
-}
-
-.clear-search {
-  background: none;
-  border: none;
-  color: #999;
-  font-size: 24px;
-  cursor: pointer;
-  padding: 10px 15px;
-  margin-right: 5px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  position: relative;
-}
-
-.clear-search:hover {
-  background-color: rgba(220, 53, 69, 0.1);
-  color: #dc3545;
-  transform: scale(1.1);
-}
-
-.clear-search:active {
-  transform: scale(0.95);
-}
-
-/* Animación de entrada para el buscador */
-@keyframes slideInSearch {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.search-box {
-  animation: slideInSearch 0.5s ease-out;
-}
-
-/* Responsive design para el buscador */
-@media (max-width: 768px) {
-  .search-box {
-    padding: 0 10px;
-  }
-
-  .search-input-container {
-    max-width: 100%;
-  }
-
-  .search-input {
-    font-size: 14px;
-    padding: 12px 12px 12px 0;
-  }
-
-  .search-icon {
-    font-size: 14px;
-    margin-left: 12px;
-  }
-
-  .clear-search {
-    padding: 8px 12px;
-    font-size: 20px;
-  }
 }

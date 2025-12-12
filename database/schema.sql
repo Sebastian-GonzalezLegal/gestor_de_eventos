@@ -85,3 +85,17 @@ CREATE TABLE IF NOT EXISTS subtipos (
   INDEX idx_nombre (nombre)
 );
 
+-- Tabla de usuarios
+CREATE TABLE IF NOT EXISTS usuarios (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  rol ENUM('admin', 'user', 'visitante') DEFAULT 'user',
+  activo BOOLEAN DEFAULT TRUE,
+  fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_email (email),
+  INDEX idx_rol (rol)
+);
+

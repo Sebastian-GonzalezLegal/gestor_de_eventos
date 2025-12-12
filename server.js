@@ -12,6 +12,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
+const authRoutes = require('./routes/authRoutes');
 const vecinoRoutes = require('./routes/vecinoRoutes');
 const eventoRoutes = require('./routes/eventoRoutes');
 const registroRoutes = require('./routes/registroRoutes');
@@ -19,6 +20,7 @@ const subsecretariaRoutes = require('./routes/subsecretariaRoutes');
 const tipoRoutes = require('./routes/tipoRoutes');
 const subtipoRoutes = require('./routes/subtipoRoutes');
 
+app.use('/api/auth', authRoutes);
 app.use('/api/vecinos', vecinoRoutes);
 app.use('/api/eventos', eventoRoutes);
 app.use('/api/registros', registroRoutes);

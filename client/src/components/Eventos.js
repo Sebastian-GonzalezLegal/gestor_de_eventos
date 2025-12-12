@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch } from 'react-icons/fa';
 import { eventosAPI } from '../services/api';
 import EventoForm from './EventoForm';
+import { useUser } from '../contexts/UserContext';
 import './Eventos.css';
 
 const Eventos = () => {
+  const { isAdmin } = useUser();
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -113,9 +115,11 @@ const Eventos = () => {
       <div className="card">
         <div className="card-header">
           <h2>Gestión de Eventos</h2>
-          <button className="btn btn-primary" onClick={handleCreate}>
-            <FaPlus /> Nuevo Evento
-          </button>
+          {isAdmin && (
+            <button className="btn btn-primary" onClick={handleCreate}>
+              <FaPlus /> Nuevo Evento
+            </button>
+          )}
         </div>
 
       <div className="search-box">
@@ -181,22 +185,24 @@ const Eventos = () => {
                     </div>
                   )}
                 </div>
-                <div className="evento-actions">
-                  <button
-                    className="btn btn-sm btn-secondary"
-                    onClick={() => handleEdit(evento)}
-                    title="Editar evento"
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => handleDelete(evento.id)}
-                    title="Eliminar evento"
-                  >
-                    <FaTrash />
-                  </button>
-                </div>
+                {isAdmin && (
+                  <div className="evento-actions">
+                    <button
+                      className="btn btn-sm btn-secondary"
+                      onClick={() => handleEdit(evento)}
+                      title="Editar evento"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(evento.id)}
+                      title="Eliminar evento"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div className="evento-content">
@@ -235,7 +241,7 @@ const Eventos = () => {
         )}
       </div>
 
-      {showModal && (
+      {showModal && isAdmin && (
         <EventoForm
           evento={editingEvento}
           onClose={() => {
