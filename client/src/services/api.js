@@ -111,5 +111,10 @@ export const authAPI = {
   toggleUserActivo: (id) => api.patch(`/auth/users/${id}/toggle-activo`),
 };
 
+// Dashboard
+export const dashboardAPI = {
+  getStats: () => api.get('/dashboard/stats'),
+};
+
 export default api;
 

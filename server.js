@@ -19,6 +19,7 @@ const registroRoutes = require('./routes/registroRoutes');
 const subsecretariaRoutes = require('./routes/subsecretariaRoutes');
 const tipoRoutes = require('./routes/tipoRoutes');
 const subtipoRoutes = require('./routes/subtipoRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vecinos', vecinoRoutes);
@@ -27,6 +28,7 @@ app.use('/api/registros', registroRoutes);
 app.use('/api/subsecretarias', subsecretariaRoutes);
 app.use('/api/tipos', tipoRoutes);
 app.use('/api/subtipos', subtipoRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

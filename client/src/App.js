@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar';
 import Login from './components/Login';
+import Dashboard from './components/Dashboard';
 import Vecinos from './components/Vecinos';
 import Eventos from './components/Eventos';
 import RegistroEvento from './components/RegistroEvento';
@@ -23,7 +24,7 @@ const ProtectedRoute = ({ children, user }) => {
 // Componente para rutas públicas (solo accesibles sin autenticación)
 const PublicRoute = ({ children, user }) => {
   if (user) {
-    return <Navigate to="/registro" replace />;
+    return <Navigate to="/" replace />;
   }
   return children;
 };
@@ -66,7 +67,9 @@ function AppContent() {
           <Route
             path="/"
             element={
-              user ? <Navigate to="/registro" replace /> : <Navigate to="/login" replace />
+              <ProtectedRoute user={user}>
+                <Dashboard />
+              </ProtectedRoute>
             }
           />
           <Route

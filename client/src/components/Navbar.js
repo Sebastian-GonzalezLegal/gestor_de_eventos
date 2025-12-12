@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useUser } from '../contexts/UserContext';
 import {
+  FaHome,
   FaCog,
   FaChevronDown,
   FaUsers,
@@ -22,7 +22,6 @@ import { vecinosAPI, eventosAPI, registrosAPI, subsecretariasAPI, tiposAPI, subt
 import './Navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
-  const { isAdmin } = useUser();
   const [showConfigMenu, setShowConfigMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -377,6 +376,14 @@ const Navbar = ({ user, onLogout }) => {
         <div className="navbar-navigation">
           <div className="navbar-tabs">
             <Link
+              to="/"
+              className={`navbar-tab ${isActive('/') ? 'active' : ''}`}
+              onClick={closeMenus}
+            >
+              <FaHome />
+              <span className="tab-text">Inicio</span>
+            </Link>
+            <Link
               to="/registro"
               className={`navbar-tab ${isActive('/registro') ? 'active' : ''}`}
               onClick={closeMenus}
@@ -529,6 +536,16 @@ const Navbar = ({ user, onLogout }) => {
 
         <div className="mobile-menu-content">
           <div className="mobile-section-title">Principal</div>
+          <Link
+            to="/"
+            className={`mobile-menu-item ${isActive('/') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaHome /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Inicio</div>
+            </div>
+          </Link>
           <Link
             to="/registro"
             className={`mobile-menu-item ${isActive('/registro') ? 'active' : ''}`}
