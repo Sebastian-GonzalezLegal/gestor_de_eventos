@@ -50,6 +50,7 @@ export const registrosAPI = {
 export const subsecretariasAPI = {
   getAll: () => api.get('/subsecretarias'),
   getById: (id) => api.get(`/subsecretarias/${id}`),
+  search: (query) => api.get(`/subsecretarias/search?q=${encodeURIComponent(query)}`),
   create: (data) => api.post('/subsecretarias', data),
   update: (id, data) => api.put(`/subsecretarias/${id}`, data),
   delete: (id) => api.delete(`/subsecretarias/${id}`),
@@ -59,6 +60,7 @@ export const subsecretariasAPI = {
 export const tiposAPI = {
   getAll: () => api.get('/tipos'),
   getById: (id) => api.get(`/tipos/${id}`),
+  search: (query) => api.get(`/tipos/search?q=${encodeURIComponent(query)}`),
   create: (data) => api.post('/tipos', data),
   update: (id, data) => api.put(`/tipos/${id}`, data),
   delete: (id) => api.delete(`/tipos/${id}`),
@@ -70,6 +72,7 @@ export const subtiposAPI = {
   getAll: () => api.get('/subtipos'),
   getById: (id) => api.get(`/subtipos/${id}`),
   getByTipo: (tipoId) => api.get(`/subtipos/tipo/${tipoId}`),
+  search: (query) => api.get(`/subtipos/search?q=${encodeURIComponent(query)}`),
   create: (data) => api.post('/subtipos', data),
   update: (id, data) => api.put(`/subtipos/${id}`, data),
   delete: (id) => api.delete(`/subtipos/${id}`),

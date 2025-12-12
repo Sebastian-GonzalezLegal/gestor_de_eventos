@@ -2,6 +2,42 @@
   padding: 16px 0;
 }
 
+/* Estilos específicos para la card-header en RegistroEvento */
+.registro-evento .card-header {
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.registro-evento .card-header h2 {
+  flex: 1;
+  min-width: 200px;
+  margin: 0;
+}
+
+.registro-evento .card-header .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Responsive design para RegistroEvento */
+@media (max-width: 768px) {
+  .registro-evento .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .registro-evento .card-header h2 {
+    margin-bottom: 15px;
+  }
+
+  .registro-evento .card-header .btn {
+    align-self: center;
+    width: auto;
+    min-width: 150px;
+  }
+}
+
 .search-section {
   margin-bottom: 24px;
   padding: 0 20px;
@@ -11,12 +47,13 @@
   position: relative;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
   border-radius: 12px;
   border: 2px solid rgba(220, 53, 69, 0.1);
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .search-input-container:focus-within {
@@ -31,6 +68,9 @@
   margin-left: 15px;
   margin-right: 10px;
   transition: color 0.2s ease;
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
 }
 
 .search-input-container:focus-within .search-icon {
@@ -38,16 +78,19 @@
   transform: scale(1.1);
 }
 
-.search-input {
+.search-section .search-input-container .search-input {
   flex: 1;
-  padding: 15px 15px 15px 0;
-  border: none;
-  outline: none;
-  background: transparent;
+  padding: 15px 15px 15px 0 !important;
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
   font-size: 16px;
   color: #333;
   font-weight: 500;
   transition: all 0.2s ease;
+  min-width: auto !important;
+  position: relative !important;
+  z-index: 2 !important;
 }
 
 .search-input::placeholder {

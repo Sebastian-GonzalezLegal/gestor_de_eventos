@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaList } from 'react-icons/fa';
 import { tiposAPI } from '../services/api';
-import './Vecinos.css';
+import './Tipos.css';
 
 const Tipos = ({ setActiveTab }) => {
   const [tipos, setTipos] = useState([]);
@@ -98,7 +98,7 @@ const Tipos = ({ setActiveTab }) => {
   }
 
   return (
-    <div className="eventos">
+    <div className="tipos">
       <div className="card">
         <div className="card-header">
           <h2>Tipos</h2>
@@ -113,17 +113,15 @@ const Tipos = ({ setActiveTab }) => {
           </div>
         )}
 
-        <div className="eventos-grid">
-          {loading ? (
-            <div className="loading">Cargando tipos...</div>
-          ) : tipos.length === 0 ? (
+        <div className="tipos-grid">
+          {tipos.length === 0 ? (
             <div className="no-data">No hay tipos registrados</div>
           ) : (
             tipos.map((tipo, index) => (
-              <div key={tipo.id} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="evento-header">
+              <div key={tipo.id} className="tipo-card" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="tipo-header">
                   <h3>{tipo.nombre}</h3>
-                  <div className="evento-actions">
+                  <div className="tipo-actions">
                     <button
                       className="btn btn-sm btn-info"
                       onClick={() => {
@@ -152,8 +150,8 @@ const Tipos = ({ setActiveTab }) => {
                   </div>
                 </div>
 
-                <div className="evento-content">
-                  <div className="evento-details">
+                <div className="tipo-content">
+                  <div className="tipo-details">
                     <div className="detail-item">
                       <span role="img" aria-label="ID">🆔</span>
                       <span>ID: {tipo.id}</span>
@@ -171,13 +169,13 @@ const Tipos = ({ setActiveTab }) => {
       </div>
 
       {showModal && (
-        <div className="modal-overlay">
+        <div className="modal">
           <div className="modal-content">
             <div className="modal-header">
               <h3>
                 {editingTipo ? 'Editar Tipo' : 'Nuevo Tipo'}
               </h3>
-              <button className="modal-close" onClick={closeModal}>×</button>
+              <button className="close-btn" onClick={closeModal}>×</button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">
@@ -191,7 +189,7 @@ const Tipos = ({ setActiveTab }) => {
                   placeholder="Ingrese el nombre del tipo"
                 />
               </div>
-              <div className="modal-actions">
+              <div className="form-actions">
                 <button type="button" className="btn btn-secondary" onClick={closeModal}>
                   Cancelar
                 </button>
