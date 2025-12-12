@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FaCog,
   FaChevronDown,
@@ -11,20 +12,26 @@ import {
   FaSpinner,
   FaBuilding,
   FaTags,
-  FaTag
+  FaTag,
+  FaSignOutAlt,
+  FaUserCircle
 } from 'react-icons/fa';
 import { vecinosAPI, eventosAPI, registrosAPI, subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
 import './Navbar.css';
 
-const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
+const Navbar = () => {
   const [showConfigMenu, setShowConfigMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
+  
   const searchRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  const configMenuTimeoutRef = useRef(null);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Cerrar resultados de búsqueda al hacer click fuera
   useEffect(() => {
@@ -115,11 +122,7 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
           title: `${vecino.nombre} ${vecino.apellido}`,
           subtitle: `DNI: ${vecino.documento}`,
           icon: <FaUsers />,
-          onClick: () => {
-            setActiveTab('vecinos');
-            setShowSearchResults(false);
-            setSearchTerm('');
-          }
+          path: '/vecinos'
         })));
       }
 
@@ -142,11 +145,7 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
             title: evento.titulo || evento.nombre || 'Evento sin título',
             subtitle: `Fecha: ${formatDate(fecha)}`,
             icon: <FaCalendarAlt />,
-            onClick: () => {
-              setActiveTab('eventos');
-              setShowSearchResults(false);
-              setSearchTerm('');
-            }
+            path: '/eventos'
           };
         }));
       }
@@ -170,11 +169,7 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
           title: `${registro.vecino?.nombre} ${registro.vecino?.apellido}`,
           subtitle: `Evento: ${registro.evento?.titulo}`,
           icon: <FaClipboardList />,
-          onClick: () => {
-            setActiveTab('registro');
-            setShowSearchResults(false);
-            setSearchTerm('');
-          }
+          path: '/registro'
         })));
       }
 
@@ -189,11 +184,7 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
           title: subsecretaria.nombre,
           subtitle: `Dependencia municipal`,
           icon: <FaBuilding />,
-          onClick: () => {
-            setActiveTab('subsecretarias');
-            setShowSearchResults(false);
-            setSearchTerm('');
-          }
+          path: '/subsecretarias'
         })));
       }
 
@@ -208,11 +199,7 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
           title: tipo.nombre,
           subtitle: `Categoría principal`,
           icon: <FaTags />,
-          onClick: () => {
-            setActiveTab('tipos');
-            setShowSearchResults(false);
-            setSearchTerm('');
-          }
+          path: '/tipos'
         })));
       }
 
@@ -227,11 +214,7 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
           title: subtipo.nombre,
           subtitle: `Subcategoría`,
           icon: <FaTag />,
-          onClick: () => {
-            setActiveTab('subtipos');
-            setShowSearchResults(false);
-            setSearchTerm('');
-          }
+          path: '/subtipos'
         })));
       }
 
@@ -267,37 +250,66 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
     }
   };
 
+  const handleResultClick = (path) => {
+    navigate(path);
+    setShowSearchResults(false);
+    setSearchTerm('');
+    closeMenus();
+  }
+
   const closeMenus = () => {
     setShowConfigMenu(false);
     setShowMobileMenu(false);
   };
 
+  const handleConfigMouseEnter = () => {
+    if (configMenuTimeoutRef.current) {
+      clearTimeout(configMenuTimeoutRef.current);
+    }
+    setShowConfigMenu(true);
+  };
+
+  const handleConfigMouseLeave = () => {
+    configMenuTimeoutRef.current = setTimeout(() => {
+      setShowConfigMenu(false);
+    }, 300);
+  };
+
+  const isActive = (path) => location.pathname === path;
+  const isConfigActive = () => ['/subsecretarias', '/tipos', '/subtipos'].includes(location.pathname);
+
   return (
     <nav className="navbar">
       <div className="navbar-container">
         {/* Logo y título */}
-        <div className="navbar-brand-section">
-          <h1 className="navbar-brand">
-            <span className="brand-accent">TIGRE</span> MUNICIPIO
-          </h1>
-          <div className="brand-subtitle">Sistema de Gestión Municipal</div>
-        </div>
+        <Link to="/" className="navbar-brand-section" onClick={closeMenus}>
+          <div className="navbar-logo-wrapper">
+             {/* Placeholder for a real logo image if available, using icon for now */}
+            <div className="brand-icon-circle">T</div>
+          </div>
+          <div>
+            <h1 className="navbar-brand">
+              <span className="brand-accent">TIGRE</span> MUNICIPIO
+            </h1>
+            <div className="brand-subtitle">Sistema de Gestión Municipal</div>
+          </div>
+        </Link>
 
         {/* Búsqueda integrada */}
         <div className="navbar-search" ref={searchRef}>
           <form onSubmit={handleSearchSubmit} className="search-form">
-            <div className="search-input-wrapper">
+            <div className="navbar-search-wrapper">
               <input
                 type="text"
-                placeholder="Buscar en todo el sistema..."
+                placeholder="Buscar en la página"
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="search-input"
+                className="navbar-search-input"
               />
               {searchLoading ? (
-                <FaSpinner className="search-icon spinning" />
+                <FaSpinner className="navbar-search-icon spinning" />
               ) : (
-                <FaSearch className="search-icon" />
+                <FaSearch className="navbar-search-icon" />
               )}
             </div>
           </form>
@@ -306,35 +318,36 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
           {showSearchResults && searchResults.length > 0 && (
             <div className="search-results-dropdown">
               <div className="search-results-header">
-                Resultados de búsqueda
+                Resultados encontrados ({searchResults.length})
               </div>
-              {searchResults.map((result) => (
-                <button
-                  key={`${result.type}-${result.id}`}
-                  className="search-result-item"
-                  onClick={result.onClick}
-                >
-                  <div className="search-result-icon">
-                    {result.icon}
-                  </div>
-                  <div className="search-result-content">
-                    <div className="search-result-title">{result.title}</div>
-                    <div className="search-result-subtitle">{result.subtitle}</div>
-                  </div>
-                  <div className="search-result-type">{result.type}</div>
-                </button>
-              ))}
+              <div className="search-results-list">
+                {searchResults.map((result) => (
+                  <button
+                    key={`${result.type}-${result.id}`}
+                    className="search-result-item"
+                    onClick={() => handleResultClick(result.path)}
+                  >
+                    <div className="search-result-icon">
+                      {result.icon}
+                    </div>
+                    <div className="search-result-content">
+                      <div className="search-result-title">{result.title}</div>
+                      <div className="search-result-subtitle">{result.subtitle}</div>
+                    </div>
+                    <div className="search-result-type">{result.type}</div>
+                  </button>
+                ))}
+              </div>
               {searchResults.length >= 5 && (
                 <div className="search-results-footer">
                   <button
                     className="search-see-more"
                     onClick={() => {
-                      // Aquí podrías navegar a una página de resultados completa
                       setShowSearchResults(false);
                       setSearchTerm('');
                     }}
                   >
-                    Ver todos los resultados
+                    Cerrar resultados
                   </button>
                 </div>
               )}
@@ -345,44 +358,38 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
         {/* Navegación principal */}
         <div className="navbar-navigation">
           <div className="navbar-tabs">
-            <button
-              className={`navbar-tab ${activeTab === 'registro' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('registro');
-                closeMenus();
-              }}
-              title="Registro de Eventos"
+            <Link
+              to="/registro"
+              className={`navbar-tab ${isActive('/registro') ? 'active' : ''}`}
+              onClick={closeMenus}
             >
               <FaClipboardList />
               <span className="tab-text">Registro</span>
-            </button>
-            <button
-              className={`navbar-tab ${activeTab === 'vecinos' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('vecinos');
-                closeMenus();
-              }}
-              title="Gestión de Vecinos"
+            </Link>
+            <Link
+              to="/vecinos"
+              className={`navbar-tab ${isActive('/vecinos') ? 'active' : ''}`}
+              onClick={closeMenus}
             >
               <FaUsers />
               <span className="tab-text">Vecinos</span>
-            </button>
-            <button
-              className={`navbar-tab ${activeTab === 'eventos' ? 'active' : ''}`}
-              onClick={() => {
-                setActiveTab('eventos');
-                closeMenus();
-              }}
-              title="Gestión de Eventos"
+            </Link>
+            <Link
+              to="/eventos"
+              className={`navbar-tab ${isActive('/eventos') ? 'active' : ''}`}
+              onClick={closeMenus}
             >
               <FaCalendarAlt />
               <span className="tab-text">Eventos</span>
-            </button>
-            <div className="dropdown">
+            </Link>
+            <div 
+              className="dropdown" 
+              onMouseEnter={handleConfigMouseEnter}
+              onMouseLeave={handleConfigMouseLeave}
+            >
               <button
-                className={`navbar-tab dropdown-toggle ${['subsecretarias', 'tipos', 'subtipos'].includes(activeTab) ? 'active' : ''}`}
+                className={`navbar-tab dropdown-toggle ${isConfigActive() ? 'active' : ''}`}
                 onClick={() => setShowConfigMenu(!showConfigMenu)}
-                title="Configuraciones del Sistema"
               >
                 <FaCog />
                 <span className="tab-text">Configuración</span>
@@ -390,46 +397,49 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
               </button>
               {showConfigMenu && (
                 <div className="dropdown-menu">
-                  <div className="dropdown-header">Configuraciones</div>
-                  <button
-                    className={`dropdown-item ${activeTab === 'subsecretarias' ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveTab('subsecretarias');
-                      closeMenus();
-                    }}
+                  <div className="dropdown-header">Administración</div>
+                  <Link
+                    to="/subsecretarias"
+                    className={`dropdown-item ${isActive('/subsecretarias') ? 'active' : ''}`}
+                    onClick={closeMenus}
                   >
+                    <div className="dropdown-icon-wrapper"><FaBuilding /></div>
                     <div className="dropdown-item-content">
                       <span className="dropdown-item-title">Subsecretarías</span>
-                      <span className="dropdown-item-desc">Administrar dependencias</span>
+                      <span className="dropdown-item-desc">Dependencias</span>
                     </div>
-                  </button>
-                  <button
-                    className={`dropdown-item ${activeTab === 'tipos' ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveTab('tipos');
-                      closeMenus();
-                    }}
+                  </Link>
+                  <Link
+                    to="/tipos"
+                    className={`dropdown-item ${isActive('/tipos') ? 'active' : ''}`}
+                    onClick={closeMenus}
                   >
+                    <div className="dropdown-icon-wrapper"><FaTags /></div>
                     <div className="dropdown-item-content">
                       <span className="dropdown-item-title">Tipos</span>
-                      <span className="dropdown-item-desc">Categorías principales</span>
+                      <span className="dropdown-item-desc">Categorías</span>
                     </div>
-                  </button>
-                  <button
-                    className={`dropdown-item ${activeTab === 'subtipos' ? 'active' : ''}`}
-                    onClick={() => {
-                      setActiveTab('subtipos');
-                      closeMenus();
-                    }}
+                  </Link>
+                  <Link
+                    to="/subtipos"
+                    className={`dropdown-item ${isActive('/subtipos') ? 'active' : ''}`}
+                    onClick={closeMenus}
                   >
+                    <div className="dropdown-icon-wrapper"><FaTag /></div>
                     <div className="dropdown-item-content">
                       <span className="dropdown-item-title">Subtipos</span>
-                      <span className="dropdown-item-desc">Subcategorías del sistema</span>
+                      <span className="dropdown-item-desc">Subcategorías</span>
                     </div>
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
+          </div>
+          
+          <div className="navbar-user">
+             <button className="user-profile-btn">
+                <FaUserCircle className="user-avatar" />
+             </button>
           </div>
         </div>
 
@@ -444,113 +454,93 @@ const Navbar = ({ activeTab, setActiveTab, stats = {} }) => {
       </div>
 
       {/* Overlay para cerrar menús */}
-      <div className={`navbar-overlay ${(showConfigMenu || showMobileMenu) ? 'active' : ''}`} onClick={closeMenus}></div>
+      <div className={`navbar-overlay ${(showMobileMenu) ? 'active' : ''}`} onClick={closeMenus}></div>
 
       {/* Menú móvil */}
       <div className={`mobile-menu ${showMobileMenu ? 'active' : ''}`}>
         <div className="mobile-menu-header">
-          <h3 className="mobile-menu-title">Menú</h3>
-          <p className="mobile-menu-subtitle">Navegación principal</p>
+          <div className="mobile-brand">
+             <span className="brand-accent">TIGRE</span> MUNICIPIO
+          </div>
+          <button className="mobile-close-btn" onClick={closeMenus}><FaTimes /></button>
         </div>
 
         <div className="mobile-menu-content">
-          <button
-            className={`mobile-menu-item ${activeTab === 'registro' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('registro');
-              closeMenus();
-            }}
+          <div className="mobile-section-title">Principal</div>
+          <Link
+            to="/registro"
+            className={`mobile-menu-item ${isActive('/registro') ? 'active' : ''}`}
+            onClick={closeMenus}
           >
-            <div className="mobile-menu-item-icon">
-              <FaClipboardList />
-            </div>
+            <div className="mobile-menu-item-icon"><FaClipboardList /></div>
             <div className="mobile-menu-item-content">
               <div className="mobile-menu-item-title">Registro</div>
-              <div className="mobile-menu-item-desc">Registro de eventos</div>
             </div>
-          </button>
+          </Link>
 
-          <button
-            className={`mobile-menu-item ${activeTab === 'vecinos' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('vecinos');
-              closeMenus();
-            }}
+          <Link
+            to="/vecinos"
+            className={`mobile-menu-item ${isActive('/vecinos') ? 'active' : ''}`}
+            onClick={closeMenus}
           >
-            <div className="mobile-menu-item-icon">
-              <FaUsers />
-            </div>
+            <div className="mobile-menu-item-icon"><FaUsers /></div>
             <div className="mobile-menu-item-content">
               <div className="mobile-menu-item-title">Vecinos</div>
-              <div className="mobile-menu-item-desc">Gestión de vecinos</div>
             </div>
-          </button>
+          </Link>
 
-          <button
-            className={`mobile-menu-item ${activeTab === 'eventos' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('eventos');
-              closeMenus();
-            }}
+          <Link
+            to="/eventos"
+            className={`mobile-menu-item ${isActive('/eventos') ? 'active' : ''}`}
+            onClick={closeMenus}
           >
-            <div className="mobile-menu-item-icon">
-              <FaCalendarAlt />
-            </div>
+            <div className="mobile-menu-item-icon"><FaCalendarAlt /></div>
             <div className="mobile-menu-item-content">
               <div className="mobile-menu-item-title">Eventos</div>
-              <div className="mobile-menu-item-desc">Gestión de eventos</div>
             </div>
-          </button>
+          </Link>
 
-          <div style={{ height: '20px' }}></div>
+          <div className="mobile-divider"></div>
+          <div className="mobile-section-title">Configuración</div>
 
-          <button
-            className={`mobile-menu-item ${activeTab === 'subsecretarias' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('subsecretarias');
-              closeMenus();
-            }}
+          <Link
+            to="/subsecretarias"
+            className={`mobile-menu-item ${isActive('/subsecretarias') ? 'active' : ''}`}
+            onClick={closeMenus}
           >
-            <div className="mobile-menu-item-icon">
-              <FaCog />
-            </div>
+            <div className="mobile-menu-item-icon"><FaBuilding /></div>
             <div className="mobile-menu-item-content">
               <div className="mobile-menu-item-title">Subsecretarías</div>
-              <div className="mobile-menu-item-desc">Administrar dependencias</div>
             </div>
-          </button>
+          </Link>
 
-          <button
-            className={`mobile-menu-item ${activeTab === 'tipos' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('tipos');
-              closeMenus();
-            }}
+          <Link
+            to="/tipos"
+            className={`mobile-menu-item ${isActive('/tipos') ? 'active' : ''}`}
+            onClick={closeMenus}
           >
-            <div className="mobile-menu-item-icon">
-              <FaCog />
-            </div>
+            <div className="mobile-menu-item-icon"><FaTags /></div>
             <div className="mobile-menu-item-content">
               <div className="mobile-menu-item-title">Tipos</div>
-              <div className="mobile-menu-item-desc">Categorías principales</div>
             </div>
-          </button>
+          </Link>
 
-          <button
-            className={`mobile-menu-item ${activeTab === 'subtipos' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('subtipos');
-              closeMenus();
-            }}
+          <Link
+            to="/subtipos"
+            className={`mobile-menu-item ${isActive('/subtipos') ? 'active' : ''}`}
+            onClick={closeMenus}
           >
-            <div className="mobile-menu-item-icon">
-              <FaCog />
-            </div>
+            <div className="mobile-menu-item-icon"><FaTag /></div>
             <div className="mobile-menu-item-content">
               <div className="mobile-menu-item-title">Subtipos</div>
-              <div className="mobile-menu-item-desc">Subcategorías del sistema</div>
             </div>
-          </button>
+          </Link>
+          
+          <div className="mobile-footer-actions">
+             <button className="mobile-logout-btn">
+                <FaSignOutAlt /> Cerrar Sesión
+             </button>
+          </div>
         </div>
       </div>
     </nav>

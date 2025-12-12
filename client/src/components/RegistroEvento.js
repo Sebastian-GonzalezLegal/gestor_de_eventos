@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaUserCheck, FaCalendarPlus } from 'react-icons/fa';
+import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers } from 'react-icons/fa';
 import { registrosAPI, vecinosAPI, eventosAPI } from '../services/api';
 import './RegistroEvento.css';
 
 const RegistroEvento = () => {
-  const [documento, setDocumento] = useState('');
+  const [vecinos, setVecinos] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [vecinoEncontrado, setVecinoEncontrado] = useState(null);
   const [eventos, setEventos] = useState([]);
   const [eventosVecino, setEventosVecino] = useState([]);
@@ -12,10 +13,11 @@ const RegistroEvento = () => {
   const [notas, setNotas] = useState('');
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
-  const [buscando, setBuscando] = useState(false);
+  const [loadingVecinos, setLoadingVecinos] = useState(false);
 
   useEffect(() => {
     loadEventos();
+    loadVecinos();
   }, []);
 
   const loadEventos = async () => {
@@ -27,43 +29,60 @@ const RegistroEvento = () => {
     }
   };
 
-  const buscarVecino = async () => {
-    if (!documento.trim()) {
-      showAlert('Por favor ingrese un documento', 'error');
+  const loadVecinos = async () => {
+    try {
+      setLoadingVecinos(true);
+      const response = await vecinosAPI.getAll();
+      setVecinos(response.data);
+    } catch (error) {
+      showAlert('Error al cargar vecinos', 'error');
+    } finally {
+      setLoadingVecinos(false);
+    }
+  };
+
+  const handleSearch = async (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+
+    if (term.trim() === '') {
+      loadVecinos();
       return;
     }
 
-    setBuscando(true);
+    try {
+      const response = await vecinosAPI.search(term);
+      setVecinos(response.data);
+    } catch (error) {
+      console.error('Error buscando vecinos', error);
+    }
+  };
+
+  const seleccionarVecino = async (vecino) => {
+    setVecinoEncontrado(vecino);
+    setEventosVecino([]);
+    
+    try {
+      const response = await vecinosAPI.getEventos(vecino.id);
+      setEventosVecino(response.data);
+    } catch (error) {
+      console.error('Error al cargar historial del vecino', error);
+      showAlert('Error al cargar el historial del vecino', 'warning');
+    }
+  };
+
+  const volverAlListado = () => {
     setVecinoEncontrado(null);
     setEventosVecino([]);
-
-    try {
-      const vecino = await vecinosAPI.findByDocumento(documento);
-      if (vecino) {
-        setVecinoEncontrado(vecino);
-        // Cargar eventos del vecino
-        const response = await vecinosAPI.getEventos(vecino.id);
-        setEventosVecino(response.data);
-        showAlert('Vecino encontrado', 'success');
-      } else {
-        showAlert('Vecino no encontrado. Debe registrarlo primero en la sección Vecinos.', 'error');
-      }
-    } catch (error) {
-      if (error.response?.status === 404) {
-        showAlert('Vecino no encontrado. Debe registrarlo primero en la sección Vecinos.', 'error');
-      } else {
-        showAlert('Error al buscar Vecino', 'error');
-      }
-    } finally {
-      setBuscando(false);
-    }
+    setEventoSeleccionado('');
+    setNotas('');
   };
 
   const handleRegistro = async (e) => {
     e.preventDefault();
 
     if (!vecinoEncontrado) {
-      showAlert('Debe buscar un vecino primero', 'error');
+      showAlert('Debe seleccionar un vecino primero', 'error');
       return;
     }
 
@@ -106,17 +125,16 @@ const RegistroEvento = () => {
     setTimeout(() => setAlert(null), 5000);
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      buscarVecino();
-    }
-  };
-
   return (
     <div className="registro-evento">
       <div className="card">
         <div className="card-header">
           <h2>Registro de Vecinos a Eventos</h2>
+          {vecinoEncontrado && (
+            <button className="btn btn-secondary" onClick={volverAlListado}>
+              <FaArrowLeft /> Volver al listado
+            </button>
+          )}
         </div>
 
         {alert && (
@@ -125,64 +143,90 @@ const RegistroEvento = () => {
           </div>
         )}
 
-        <div className="search-section">
-          <div className="form-group">
-            <label>Buscar Vecino por Documento</label>
-            <div className="search-input-container">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Ingrese el número de documento..."
-                value={documento}
-                onChange={(e) => setDocumento(e.target.value)}
-                onKeyPress={handleKeyPress}
-                disabled={buscando}
-                className="search-input"
-              />
-              {documento && (
-                <button
-                  type="button"
-                  className="clear-search"
-                  onClick={() => {
-                    setDocumento('');
-                    setVecinoEncontrado(null);
-                    setEventosVecino([]);
-                  }}
-                  title="Limpiar búsqueda"
-                >
-                  ×
-                </button>
-              )}
-              <button
-                className="btn btn-primary search-button"
-                onClick={buscarVecino}
-                disabled={buscando || !documento.trim()}
-              >
-                {buscando ? 'Buscando...' : 'Buscar'}
-              </button>
+        {!vecinoEncontrado ? (
+          <>
+            <div className="search-section">
+              <div className="form-group">
+                <label>Buscar Vecino</label>
+                <div className="search-input-container">
+                  <FaSearch className="search-icon" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre, apellido, documento..."
+                    value={searchTerm}
+                    onChange={handleSearch}
+                    className="search-input"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      className="clear-search"
+                      onClick={() => {
+                        setSearchTerm('');
+                        loadVecinos();
+                      }}
+                      title="Limpiar búsqueda"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {vecinoEncontrado && (
-          <div className="vecino-info">
-            <div className="card">
-              <h3>Información del Vecino</h3>
-              <div className="info-grid">
-                <div>
-                  <strong>Nombre:</strong> {vecinoEncontrado.nombre} {vecinoEncontrado.apellido}
-                </div>
-                <div>
-                  <strong>Documento:</strong> {vecinoEncontrado.documento}
-                </div>
-                <div>
-                  <strong>Email:</strong> {vecinoEncontrado.email || '-'}
-                </div>
-                <div>
-                  <strong>Teléfono:</strong> {vecinoEncontrado.telefono || '-'}
-                </div>
-                <div>
-                  <strong>Estado:</strong>{' '}
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>Documento</th>
+                    <th>Email</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {loadingVecinos ? (
+                    <tr>
+                      <td colSpan="5" className="text-center">Cargando vecinos...</td>
+                    </tr>
+                  ) : vecinos.length === 0 ? (
+                    <tr>
+                      <td colSpan="5" className="text-center">No se encontraron vecinos</td>
+                    </tr>
+                  ) : (
+                    vecinos.map((vecino) => (
+                      <tr key={vecino.id}>
+                        <td>{vecino.nombre}</td>
+                        <td>{vecino.apellido}</td>
+                        <td>{vecino.documento}</td>
+                        <td>{vecino.email || '-'}</td>
+                        <td>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => seleccionarVecino(vecino)}
+                            title="Seleccionar para registrar"
+                          >
+                            <FaUserCheck /> Seleccionar
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : (
+          <div className="vecino-info fade-in">
+            <div className="vecino-header-card">
+              <div className="vecino-avatar-placeholder">
+                <FaUsers />
+              </div>
+              <div className="vecino-header-details">
+                <h3>{vecinoEncontrado.nombre} {vecinoEncontrado.apellido}</h3>
+                <div className="vecino-badges">
+                  <span className="info-badge">DNI: {vecinoEncontrado.documento}</span>
                   <span className={`badge ${vecinoEncontrado.activo ? 'badge-success' : 'badge-danger'}`}>
                     {vecinoEncontrado.activo ? 'Activo' : 'Inactivo'}
                   </span>
@@ -190,79 +234,90 @@ const RegistroEvento = () => {
               </div>
             </div>
 
-            {eventosVecino.length > 0 && (
-              <div className="card">
-                <h3>Eventos Anteriores</h3>
-                <div className="eventos-list">
-                  {eventosVecino.map((evento) => (
-                    <div key={evento.id} className="evento-item">
-                      <div className="evento-nombre">{evento.nombre}</div>
-                      <div className="evento-fecha">
-                        {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
-                        {evento.hora_evento && ` - ${evento.hora_evento}`}
-                      </div>
-                      {evento.lugar && <div className="evento-lugar">{evento.lugar}</div>}
-                      {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && (
-                        <div className="evento-categoria">
-                          {evento.subsecretaria_nombre && <span>🏢 {evento.subsecretaria_nombre}</span>}
-                          {evento.tipo_nombre && <span>🏷️ {evento.tipo_nombre}</span>}
-                          {evento.subtipo_nombre && <span>🏷️ {evento.subtipo_nombre}</span>}
-                        </div>
-                      )}
-                      <div className="evento-fecha-registro">
-                        Registrado: {new Date(evento.fecha_registro).toLocaleString('es-ES')}
-                      </div>
+            <div className="registro-grid">
+              {/* COLUMNA 1: FORMULARIO */}
+              <div className="registro-form-column">
+                <div className="card">
+                  <h3>Registrar a Nuevo Evento</h3>
+                  <form onSubmit={handleRegistro}>
+                    <div className="form-group">
+                      <label>Seleccionar Evento *</label>
+                      <select
+                        value={eventoSeleccionado}
+                        onChange={(e) => setEventoSeleccionado(e.target.value)}
+                        required
+                        className="form-select"
+                      >
+                        <option value="">-- Seleccione un evento --</option>
+                        {eventos
+                          .filter(e => e.activo)
+                          .map((evento) => (
+                            <option key={evento.id} value={evento.id}>
+                              {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
+                              {evento.subsecretaria_nombre && ` (${evento.subsecretaria_nombre})`}
+                            </option>
+                          ))}
+                      </select>
                     </div>
-                  ))}
+
+                    <div className="form-group">
+                      <label>Notas (opcional)</label>
+                      <textarea
+                        value={notas}
+                        onChange={(e) => setNotas(e.target.value)}
+                        rows="3"
+                        placeholder="Notas adicionales sobre el registro..."
+                        className="form-textarea"
+                      />
+                    </div>
+
+                    <div className="form-actions">
+                      <button
+                        type="submit"
+                        className="btn btn-success btn-block"
+                        disabled={loading || !eventoSeleccionado}
+                      >
+                        <FaUserCheck /> {loading ? 'Registrando...' : 'Confirmar Registro'}
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
-            )}
 
-            <div className="card">
-              <h3>Registrar a Nuevo Evento</h3>
-              <form onSubmit={handleRegistro}>
-                <div className="form-group">
-                  <label>Seleccionar Evento *</label>
-                  <select
-                    value={eventoSeleccionado}
-                    onChange={(e) => setEventoSeleccionado(e.target.value)}
-                    required
-                  >
-                    <option value="">-- Seleccione un evento --</option>
-                    {eventos
-                      .filter(e => e.activo)
-                      .map((evento) => (
-                        <option key={evento.id} value={evento.id}>
-                          {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
-                          {evento.subsecretaria_nombre && ` (${evento.subsecretaria_nombre}`}
-                          {evento.tipo_nombre && ` - ${evento.tipo_nombre}`}
-                          {evento.subtipo_nombre && ` - ${evento.subtipo_nombre}`}
-                          {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && ')'}
-                        </option>
+              {/* COLUMNA 2: HISTORIAL */}
+              <div className="historial-column">
+                <div className="card">
+                  <h3>Historial de Eventos</h3>
+                  {eventosVecino.length > 0 ? (
+                    <div className="eventos-list">
+                      {eventosVecino.map((evento) => (
+                        <div key={evento.id} className="evento-item">
+                          <div className="evento-nombre">{evento.nombre}</div>
+                          <div className="evento-fecha">
+                            {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
+                            {evento.hora_evento && ` - ${evento.hora_evento}`}
+                          </div>
+                          {evento.lugar && <div className="evento-lugar">{evento.lugar}</div>}
+                          {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && (
+                            <div className="evento-categoria">
+                              {evento.subsecretaria_nombre && <span>🏢 {evento.subsecretaria_nombre}</span>}
+                              {evento.tipo_nombre && <span>🏷️ {evento.tipo_nombre}</span>}
+                              {evento.subtipo_nombre && <span>🏷️ {evento.subtipo_nombre}</span>}
+                            </div>
+                          )}
+                          <div className="evento-fecha-registro">
+                            Registrado: {new Date(evento.fecha_registro).toLocaleString('es-ES')}
+                          </div>
+                        </div>
                       ))}
-                  </select>
+                    </div>
+                  ) : (
+                    <div className="no-events-message">
+                      <p>Este vecino no ha participado en eventos recientes.</p>
+                    </div>
+                  )}
                 </div>
-
-                <div className="form-group">
-                  <label>Notas (opcional)</label>
-                  <textarea
-                    value={notas}
-                    onChange={(e) => setNotas(e.target.value)}
-                    rows="3"
-                    placeholder="Notas adicionales sobre el registro..."
-                  />
-                </div>
-
-                <div className="form-actions">
-                  <button
-                    type="submit"
-                    className="btn btn-success"
-                    disabled={loading || !eventoSeleccionado}
-                  >
-                    <FaUserCheck /> {loading ? 'Registrando...' : 'Registrar al Evento'}
-                  </button>
-                </div>
-              </form>
+              </div>
             </div>
           </div>
         )}
@@ -272,4 +327,3 @@ const RegistroEvento = () => {
 };
 
 export default RegistroEvento;
-

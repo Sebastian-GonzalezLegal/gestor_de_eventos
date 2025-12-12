@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaList } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import { tiposAPI } from '../services/api';
 import './Tipos.css';
 
-const Tipos = ({ setActiveTab }) => {
+const Tipos = () => {
+  const navigate = useNavigate();
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -127,7 +129,7 @@ const Tipos = ({ setActiveTab }) => {
                       onClick={() => {
                         // Guardar el tipo seleccionado para filtrar en Subtipos
                         localStorage.setItem('filtroTipoInicial', tipo.id.toString());
-                        setActiveTab('subtipos');
+                        navigate('/subtipos');
                       }}
                       title="Ver Subtipos"
                     >
