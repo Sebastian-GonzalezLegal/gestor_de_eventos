@@ -284,14 +284,13 @@ const Navbar = () => {
         {/* Logo y título */}
         <Link to="/" className="navbar-brand-section" onClick={closeMenus}>
           <div className="navbar-logo-wrapper">
-             {/* Placeholder for a real logo image if available, using icon for now */}
-            <div className="brand-icon-circle">T</div>
-          </div>
-          <div>
-            <h1 className="navbar-brand">
-              <span className="brand-accent">TIGRE</span> MUNICIPIO
-            </h1>
-            <div className="brand-subtitle">Sistema de Gestión Municipal</div>
+            <div className="logo-container">
+              <img
+                src="/logo_sin_fondo.png"
+                alt="Logo Municipio de Tigre"
+                className="navbar-logo-main"
+              />
+            </div>
           </div>
         </Link>
 
