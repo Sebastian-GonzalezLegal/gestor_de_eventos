@@ -49,15 +49,15 @@ const Login = ({ onLogin }) => {
       <div className="login-card">
         <div className="login-header">
           <div className="login-logo">
-            <div className="login-logo-container">
+            <div className="navbar-logo-main">
               <img
-                src="/logo_sin_fondo.png"
+                src="/logo_sin_fondo_logo.png"
                 alt="Logo Municipio de Tigre"
                 className="login-logo-img"
               />
             </div>
           </div>
-          <h2 className="login-title">Sistema de Gestión</h2>
+          <br></br>
           <p className="login-subtitle">Municipio de Tigre</p>
         </div>
 
