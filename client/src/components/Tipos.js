@@ -6,7 +6,8 @@ import { useUser } from '../contexts/UserContext';
 import './Tipos.css';
 
 const Tipos = () => {
-  const { isAdmin } = useUser();
+  const { isAdmin, isSubsecretaria } = useUser();
+  const canManage = isAdmin || isSubsecretaria;
   const navigate = useNavigate();
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -106,7 +107,7 @@ const Tipos = () => {
       <div className="card">
         <div className="card-header">
           <h2>Tipos</h2>
-          {isAdmin && (
+          {canManage && (
             <button className="btn btn-primary" onClick={openCreateModal}>
               <FaPlus /> Nuevo Tipo
             </button>
@@ -139,7 +140,7 @@ const Tipos = () => {
                     >
                       <FaList /> Subtipos
                     </button>
-                    {isAdmin && (
+                    {canManage && (
                       <>
                         <button
                           className="btn btn-sm btn-secondary"
@@ -178,7 +179,7 @@ const Tipos = () => {
         </div>
       </div>
 
-      {showModal && isAdmin && (
+      {showModal && canManage && (
         <div className="modal">
           <div className="modal-content">
             <div className="modal-header">

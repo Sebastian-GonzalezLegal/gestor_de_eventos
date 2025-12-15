@@ -6,7 +6,8 @@ import { useUser } from '../contexts/UserContext';
 import './Eventos.css';
 
 const Eventos = () => {
-  const { isAdmin } = useUser();
+  const { isAdmin, isSubsecretaria } = useUser();
+  const canManage = isAdmin || isSubsecretaria;
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -115,7 +116,7 @@ const Eventos = () => {
       <div className="card">
         <div className="card-header">
           <h2>Gestión de Eventos</h2>
-          {isAdmin && (
+          {canManage && (
             <button className="btn btn-primary" onClick={handleCreate}>
               <FaPlus /> Nuevo Evento
             </button>
@@ -185,7 +186,7 @@ const Eventos = () => {
                     </div>
                   )}
                 </div>
-                {isAdmin && (
+                {canManage && (
                   <div className="evento-actions">
                     <button
                       className="btn btn-sm btn-secondary"
@@ -241,7 +242,7 @@ const Eventos = () => {
         )}
       </div>
 
-      {showModal && isAdmin && (
+      {showModal && canManage && (
         <EventoForm
           evento={editingEvento}
           onClose={() => {

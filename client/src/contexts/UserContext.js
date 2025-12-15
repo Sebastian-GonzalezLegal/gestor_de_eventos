@@ -43,7 +43,8 @@ export const UserProvider = ({ children }) => {
     login,
     logout,
     isAdmin: user?.rol === 'admin',
-    isVisitor: user?.rol === 'visitante'
+    isVisitor: user?.rol === 'visitante',
+    isSubsecretaria: user?.rol === 'subsecretaria'
   };
 
   return (

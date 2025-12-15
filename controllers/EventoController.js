@@ -60,10 +60,18 @@ class EventoController {
         return res.status(400).json({ error: 'Nombre y fecha del evento son requeridos' });
       }
 
-      // Si es rol subsecretaria, forzar el ID de su subsecretaria
+      // Si es rol subsecretaria, validar que el ID sea el suyo o nulo
       let finalSubsecretariaId = subsecretaria_id;
       if (rol === 'subsecretaria') {
-        finalSubsecretariaId = userSubsecretariaId;
+        // Puede asignar su subsecretaria o dejarlo en null (sin asignar)
+        // Si intenta asignar otra, se fuerza a null o su subsecretaria dependiendo de lo enviado
+        // Pero para ser estrictos según el requerimiento: "asignando su subsecretaria o sin asignar nada"
+        if (subsecretaria_id && parseInt(subsecretaria_id) !== userSubsecretariaId) {
+             return res.status(403).json({
+                error: 'Solo puedes asignar eventos a tu subsecretaria o sin asignar'
+             });
+        }
+        finalSubsecretariaId = subsecretaria_id;
       }
 
       const evento = await Evento.create({ 
@@ -110,18 +118,23 @@ class EventoController {
 
       // Validar permisos específicos de subsecretaria
       if (rol === 'subsecretaria') {
-        // Solo puede editar eventos de su propia subsecretaria
-        if (evento.subsecretaria_id !== userSubsecretariaId) {
+        // Solo puede editar eventos de su propia subsecretaria o que no tengan subsecretaria
+        if (evento.subsecretaria_id && evento.subsecretaria_id !== userSubsecretariaId) {
              return res.status(403).json({
               error: 'No puedes editar eventos de otra subsecretaria'
             });
         }
       }
 
-      // Si es rol subsecretaria, asegurar que no cambie la subsecretaria a otra
+      // Si es rol subsecretaria, validar asignación
       let finalSubsecretariaId = subsecretaria_id;
       if (rol === 'subsecretaria') {
-        finalSubsecretariaId = userSubsecretariaId;
+        if (subsecretaria_id && parseInt(subsecretaria_id) !== userSubsecretariaId) {
+             return res.status(403).json({
+                error: 'Solo puedes asignar eventos a tu subsecretaria o sin asignar'
+             });
+        }
+        finalSubsecretariaId = subsecretaria_id;
       }
 
       const updated = await Evento.update(id, { 
@@ -161,8 +174,8 @@ class EventoController {
 
       // Validar permisos específicos de subsecretaria
       if (rol === 'subsecretaria') {
-        // Solo puede eliminar eventos de su propia subsecretaria
-        if (evento.subsecretaria_id !== userSubsecretariaId) {
+        // Solo puede eliminar eventos de su propia subsecretaria o sin asignar
+        if (evento.subsecretaria_id && evento.subsecretaria_id !== userSubsecretariaId) {
              return res.status(403).json({
               error: 'No puedes eliminar eventos de otra subsecretaria'
             });
@@ -195,7 +208,7 @@ class EventoController {
       }
 
       if (rol === 'subsecretaria') {
-          if (eventoExistente.subsecretaria_id !== userSubsecretariaId) {
+          if (eventoExistente.subsecretaria_id && eventoExistente.subsecretaria_id !== userSubsecretariaId) {
                return res.status(403).json({
                 error: 'No puedes cambiar el estado de eventos de otra subsecretaria'
               });

@@ -7,7 +7,8 @@ import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
 
 const Vecinos = () => {
-  const { isAdmin } = useUser();
+  const { isAdmin, isSubsecretaria } = useUser();
+  const canManage = isAdmin || isSubsecretaria;
   const [vecinos, setVecinos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -115,7 +116,7 @@ const Vecinos = () => {
       <div className="card">
         <div className="card-header">
           <h2>Gestión de Vecinos</h2>
-          {isAdmin && (
+          {canManage && (
             <button className="btn btn-primary" onClick={handleCreate}>
               <FaPlus /> Nuevo Vecino
             </button>
@@ -188,7 +189,7 @@ const Vecinos = () => {
                       </span>
                     </td>
                     <td>
-                      {isAdmin ? (
+                      {canManage ? (
                         <div className="action-buttons">
                           <button
                             className="btn btn-secondary"
@@ -239,7 +240,7 @@ const Vecinos = () => {
         </div>
       </div>
 
-      {showModal && isAdmin && (
+      {showModal && canManage && (
         <VecinoForm
           vecino={editingVecino}
           onClose={() => setShowModal(false)}

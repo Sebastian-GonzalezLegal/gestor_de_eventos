@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTimes } from 'react-icons/fa';
 import { subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 
 const EventoForm = ({ evento, onClose, onSave }) => {
+  const { user, isSubsecretaria, isAdmin } = useUser();
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -52,7 +54,22 @@ const EventoForm = ({ evento, onClose, onSave }) => {
         subsecretariasAPI.getAll(),
         tiposAPI.getAll()
       ]);
-      setSubsecretarias(subsecretariasRes.data);
+      // Filtrar subsecretarias si el usuario es subsecretaria
+      if (isSubsecretaria) {
+          const userSubsecretaria = subsecretariasRes.data.find(s => s.id === user.subsecretaria_id);
+          if (userSubsecretaria) {
+              setSubsecretarias([userSubsecretaria]);
+          } else {
+             // Si no se encuentra (caso raro), dejar vacío o mostrar todas si no hay restricción estricta en front
+             setSubsecretarias([]);
+          }
+          // Si es un evento nuevo, pre-seleccionar la subsecretaria del usuario
+          if (!evento && user.subsecretaria_id) {
+             setFormData(prev => ({...prev, subsecretaria_id: user.subsecretaria_id.toString()}));
+          }
+      } else {
+          setSubsecretarias(subsecretariasRes.data);
+      }
       setTipos(tiposRes.data);
     } catch (error) {
       console.error('Error cargando opciones:', error);
@@ -193,7 +210,7 @@ const EventoForm = ({ evento, onClose, onSave }) => {
                 disabled={loadingOptions}
                 className="form-select"
               >
-                <option value="">Seleccione una subsecretaría</option>
+                <option value="">{isSubsecretaria ? 'Sin asignar (General)' : 'Seleccione una subsecretaría'}</option>
                 {subsecretarias.map((subsecretaria) => (
                   <option key={subsecretaria.id} value={subsecretaria.id}>
                     {subsecretaria.nombre}

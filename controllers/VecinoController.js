@@ -65,10 +65,10 @@ class VecinoController {
 
   static async create(req, res) {
     try {
-      // Solo admins pueden crear vecinos
-      if (req.user.rol !== 'admin') {
+      // Admins y subsecretarias pueden crear vecinos
+      if (req.user.rol !== 'admin' && req.user.rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden crear vecinos'
+          error: 'No tienes permisos para crear vecinos'
         });
       }
 
@@ -93,10 +93,10 @@ class VecinoController {
 
   static async update(req, res) {
     try {
-      // Solo admins pueden actualizar vecinos
-      if (req.user.rol !== 'admin') {
+      // Admins y subsecretarias pueden actualizar vecinos
+      if (req.user.rol !== 'admin' && req.user.rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden actualizar vecinos'
+          error: 'No tienes permisos para actualizar vecinos'
         });
       }
 
@@ -129,10 +129,10 @@ class VecinoController {
 
   static async delete(req, res) {
     try {
-      // Solo admins pueden eliminar vecinos
-      if (req.user.rol !== 'admin') {
+      // Admins y subsecretarias pueden eliminar vecinos
+      if (req.user.rol !== 'admin' && req.user.rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden eliminar vecinos'
+          error: 'No tienes permisos para eliminar vecinos'
         });
       }
 
@@ -152,10 +152,10 @@ class VecinoController {
 
   static async toggleActivo(req, res) {
     try {
-      // Solo admins pueden cambiar el estado de vecinos
-      if (req.user.rol !== 'admin') {
+      // Admins y subsecretarias pueden cambiar el estado de vecinos
+      if (req.user.rol !== 'admin' && req.user.rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden cambiar el estado de vecinos'
+          error: 'No tienes permisos para cambiar el estado de vecinos'
         });
       }
 

@@ -5,7 +5,8 @@ import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
 
 const Subtipos = () => {
-  const { isAdmin } = useUser();
+  const { isAdmin, isSubsecretaria } = useUser();
+  const canManage = isAdmin || isSubsecretaria;
   const [subtipos, setSubtipos] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -192,7 +193,7 @@ const Subtipos = () => {
                 </button>
               )}
             </div>
-            {isAdmin && (
+            {canManage && (
               <button className="btn btn-primary" onClick={openCreateModal}>
                 <FaPlus /> Nuevo Subtipo
               </button>
@@ -221,7 +222,7 @@ const Subtipos = () => {
               <div key={subtipo.id} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="evento-header">
                   <h3>{subtipo.nombre}</h3>
-                  {isAdmin && (
+                  {canManage && (
                     <div className="evento-actions">
                       <button
                         className="btn btn-sm btn-secondary"
@@ -263,7 +264,7 @@ const Subtipos = () => {
         </div>
       </div>
 
-      {showModal && isAdmin && (
+      {showModal && canManage && (
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
