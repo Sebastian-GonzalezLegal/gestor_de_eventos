@@ -284,21 +284,48 @@ const RegistroEvento = () => {
                     {eventosVecino && eventosVecino.length > 0 ? (
                       eventosVecino.map((evento) => (
                         <div key={evento.id_registro} className="evento-item">
-                          <div className="evento-header">
+                          <div className="evento-header-row">
                             <div className="evento-titulo">{evento.nombre}</div>
-                            <div className="evento-fecha">
+                            <div className="evento-fecha-badge">
                               {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
                             </div>
                           </div>
-                          <div className="evento-detalles">
-                            <span className="evento-lugar"><FaMapMarkerAlt /> {evento.lugar || 'Sin lugar'}</span>
-                            <span className="evento-hora"><FaClock /> {evento.hora_evento || 'Sin hora'}</span>
-                            <span className="evento-subsecretaria"><FaBuilding /> {evento.subsecretaria_nombre || 'Sin subsecretaría'}</span>
-                            <span className="evento-tipo"><FaTag /> {evento.tipo_nombre || 'Sin tipo'}</span>
-                            {evento.subtipo_nombre && <span><FaTag /> {evento.subtipo_nombre}</span>}
+                          
+                          <div className="evento-detalles-grid">
+                            <div className="detalle-row">
+                                <div className="detalle-item" title="Lugar">
+                                    <FaMapMarkerAlt className="detalle-icon" /> 
+                                    <span>{evento.lugar || 'Sin lugar'}</span>
+                                </div>
+                                <div className="detalle-item" title="Hora">
+                                    <FaClock className="detalle-icon" /> 
+                                    <span>{evento.hora_evento ? evento.hora_evento.substring(0, 5) : 'Sin hora'}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="detalle-row">
+                                <div className="detalle-item full-width" title="Subsecretaría">
+                                    <FaBuilding className="detalle-icon" /> 
+                                    <span>{evento.subsecretaria_nombre || 'Sin subsecretaría'}</span>
+                                </div>
+                            </div>
+
+                            <div className="detalle-tags">
+                                {evento.tipo_nombre && (
+                                    <span className="evento-tag tipo">
+                                        <FaTag /> {evento.tipo_nombre}
+                                    </span>
+                                )}
+                                {evento.subtipo_nombre && (
+                                    <span className="evento-tag subtipo">
+                                        <FaTag /> {evento.subtipo_nombre}
+                                    </span>
+                                )}
+                            </div>
                           </div>
-                          <div className="evento-fecha-registro">
-                            Registrado: {new Date(evento.fecha_registro).toLocaleString('es-ES')}
+
+                          <div className="evento-footer">
+                            <small>Registrado el {new Date(evento.fecha_registro).toLocaleDateString('es-ES')} a las {new Date(evento.fecha_registro).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</small>
                           </div>
                         </div>
                       ))

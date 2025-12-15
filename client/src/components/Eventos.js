@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch, FaTimes, FaBuilding, FaTag } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch, FaTimes, FaBuilding, FaTag, FaEye } from 'react-icons/fa';
 import { eventosAPI } from '../services/api';
 import EventoForm from './EventoForm';
+import AttendeesModal from './AttendeesModal';
 import { useUser } from '../contexts/UserContext';
 import './Eventos.css';
 
@@ -14,6 +15,12 @@ const Eventos = () => {
   const [editingEvento, setEditingEvento] = useState(null);
   const [alert, setAlert] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [attendeesModal, setAttendeesModal] = useState({
+    show: false,
+    loading: false,
+    attendees: [],
+    eventName: ''
+  });
 
   useEffect(() => {
     loadEventos();
@@ -42,7 +49,6 @@ const Eventos = () => {
 
     try {
       setLoading(true);
-      // Para eventos, podemos filtrar localmente por nombre, descripción o lugar
       const allEventos = await eventosAPI.getAll();
       const filteredEventos = allEventos.data.filter(evento =>
         evento.nombre.toLowerCase().includes(term.toLowerCase()) ||
@@ -100,6 +106,35 @@ const Eventos = () => {
     }
   };
 
+  const handleViewAttendees = async (evento) => {
+    setAttendeesModal({
+      show: true,
+      loading: true,
+      attendees: [],
+      eventName: evento.nombre
+    });
+
+    try {
+      const response = await eventosAPI.getVecinos(evento.id);
+      setAttendeesModal(prev => ({
+        ...prev,
+        loading: false,
+        attendees: response.data
+      }));
+    } catch (error) {
+      console.error('Error al cargar asistentes:', error);
+      showAlert('Error al cargar la lista de asistentes', 'error');
+      setAttendeesModal(prev => ({
+        ...prev,
+        loading: false
+      }));
+    }
+  };
+
+  const closeAttendeesModal = () => {
+    setAttendeesModal({ ...attendeesModal, show: false });
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -114,24 +149,7 @@ const Eventos = () => {
   const isExpired = (evento) => {
     if (!evento.fecha_evento) return false;
     const now = new Date();
-    // Reset hours to start of day for accurate date comparison
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const eventDate = new Date(evento.fecha_evento);
-    // Convert to local time components to avoid timezone issues when parsing "YYYY-MM-DD"
-    // Assuming fecha_evento comes as YYYY-MM-DD string, new Date(string) creates UTC date
-    // But local rendering often adjusts. 
-    // Safest is string comparison for dates or careful date construction.
-    // Let's rely on standard comparison:
-    // Actually, backend sets activo=false based on CURDATE().
-    // We can just rely on active status if the backend job runs on fetch.
-    // But the user wants "visual indication".
-    // If backend sets activo=false, we can check !evento.activo.
-    // However, an admin might manually deactivate an event.
-    // The requirement says "cuando un evento expire ... se marque como inhabilitado".
-    // And "no se debe poder editar".
-    
-    // Let's implement client-side check to be sure for UI purposes
-    // Need to handle timezone offsets if fecha_evento is just a date string "2023-10-27"
     const [year, month, day] = evento.fecha_evento.toString().split('T')[0].split('-');
     const eventDateLocal = new Date(year, month - 1, day);
     
@@ -231,6 +249,13 @@ const Eventos = () => {
                 {canManage && (
                   <div className="evento-actions">
                     <button
+                      className="btn btn-sm btn-info"
+                      onClick={() => handleViewAttendees(evento)}
+                      title="Ver inscriptos"
+                    >
+                      <FaEye />
+                    </button>
+                    <button
                       className="btn btn-sm btn-secondary"
                       onClick={() => handleEdit(evento)}
                       title={expired ? "No se puede editar evento expirado" : "Editar evento"}
@@ -296,11 +321,18 @@ const Eventos = () => {
           onSave={handleSave}
         />
       )}
+
+      {attendeesModal.show && (
+        <AttendeesModal
+          eventName={attendeesModal.eventName}
+          attendees={attendeesModal.attendees}
+          loading={attendeesModal.loading}
+          onClose={closeAttendeesModal}
+        />
+      )}
       </div>
     </div>
   );
 };
 
-
 export default Eventos;
-
