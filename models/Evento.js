@@ -110,6 +110,18 @@ class Evento {
     });
   }
 
+  static async disableExpired() {
+    return new Promise((resolve, reject) => {
+      db.query(
+        'UPDATE eventos SET activo = FALSE WHERE activo = TRUE AND (fecha_evento < CURDATE() OR (fecha_evento = CURDATE() AND hora_evento < CURTIME()))',
+        (err, results) => {
+          if (err) reject(err);
+          else resolve(results);
+        }
+      );
+    });
+  }
+
   static async getVecinosByEvento(eventoId) {
     return new Promise((resolve, reject) => {
       db.query(

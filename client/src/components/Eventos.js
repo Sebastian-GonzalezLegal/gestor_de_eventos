@@ -111,6 +111,42 @@ const Eventos = () => {
     return timeString;
   };
 
+  const isExpired = (evento) => {
+    if (!evento.fecha_evento) return false;
+    const now = new Date();
+    // Reset hours to start of day for accurate date comparison
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventDate = new Date(evento.fecha_evento);
+    // Convert to local time components to avoid timezone issues when parsing "YYYY-MM-DD"
+    // Assuming fecha_evento comes as YYYY-MM-DD string, new Date(string) creates UTC date
+    // But local rendering often adjusts. 
+    // Safest is string comparison for dates or careful date construction.
+    // Let's rely on standard comparison:
+    // Actually, backend sets activo=false based on CURDATE().
+    // We can just rely on active status if the backend job runs on fetch.
+    // But the user wants "visual indication".
+    // If backend sets activo=false, we can check !evento.activo.
+    // However, an admin might manually deactivate an event.
+    // The requirement says "cuando un evento expire ... se marque como inhabilitado".
+    // And "no se debe poder editar".
+    
+    // Let's implement client-side check to be sure for UI purposes
+    // Need to handle timezone offsets if fecha_evento is just a date string "2023-10-27"
+    const [year, month, day] = evento.fecha_evento.toString().split('T')[0].split('-');
+    const eventDateLocal = new Date(year, month - 1, day);
+    
+    if (eventDateLocal < today) return true;
+    
+    if (eventDateLocal.getTime() === today.getTime() && evento.hora_evento) {
+        const [hours, minutes] = evento.hora_evento.split(':');
+        const eventTime = new Date(today);
+        eventTime.setHours(hours, minutes, 0);
+        return now > eventTime;
+    }
+    
+    return false;
+  };
+
   return (
     <div className="eventos">
       <div className="card">
@@ -161,11 +197,17 @@ const Eventos = () => {
         ) : eventos.length === 0 ? (
           <div className="no-data">No hay eventos registrados</div>
         ) : (
-          eventos.map((evento) => (
-            <div key={evento.id} className="evento-card">
+          eventos.map((evento) => {
+            const expired = isExpired(evento);
+            return (
+            <div key={evento.id} className={`evento-card ${expired ? 'expired' : ''} ${!evento.activo ? 'inactive' : ''}`}>
               <div className="evento-header">
                 <div className="evento-title-section">
-                  <h3>{evento.nombre}</h3>
+                  <h3>
+                    {evento.nombre}
+                    {expired && <span className="status-badge status-expired">Expirado</span>}
+                    {!evento.activo && !expired && <span className="status-badge status-inactive">Inactivo</span>}
+                  </h3>
                   {(evento.subsecretaria_nombre || evento.tipo_nombre || evento.subtipo_nombre) && (
                     <div className="evento-category-badges">
                       {evento.subsecretaria_nombre && (
@@ -191,7 +233,8 @@ const Eventos = () => {
                     <button
                       className="btn btn-sm btn-secondary"
                       onClick={() => handleEdit(evento)}
-                      title="Editar evento"
+                      title={expired ? "No se puede editar evento expirado" : "Editar evento"}
+                      disabled={expired}
                     >
                       <FaEdit />
                     </button>
@@ -238,7 +281,8 @@ const Eventos = () => {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

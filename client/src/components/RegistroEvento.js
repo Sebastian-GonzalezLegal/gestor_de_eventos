@@ -245,7 +245,7 @@ const RegistroEvento = () => {
                             .filter(e => e.activo)
                             .map((evento) => (
                               <option key={evento.id} value={evento.id}>
-                                {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
+                                {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')} ({evento.subsecretaria_nombre || 'General'})
                               </option>
                             ))}
                         </select>

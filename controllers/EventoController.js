@@ -4,6 +4,7 @@ const Vecino = require('../models/Vecino');
 class EventoController {
   static async getAll(req, res) {
     try {
+      await Evento.disableExpired();
       const eventos = await Evento.findAll();
       res.json(eventos);
     } catch (error) {
@@ -14,6 +15,7 @@ class EventoController {
 
   static async getActive(req, res) {
     try {
+      await Evento.disableExpired();
       const eventos = await Evento.findActive();
       res.json(eventos);
     } catch (error) {
@@ -118,6 +120,44 @@ class EventoController {
       const evento = await Evento.findById(id);
       if (!evento) {
         return res.status(404).json({ error: 'Evento no encontrado' });
+      }
+
+      // Validar si el evento ha expirado
+      const today = new Date();
+      // Simplificado: fecha local sin hora o comparación estricta de fecha DB vs fecha actual
+      // Evento.findById retorna fechas como objetos Date o strings dependiendo del driver
+      // MySQL2 devuelve Date objects por defecto.
+      const eventoDate = new Date(evento.fecha_evento);
+      // Normalizar a medianoche para comparar solo fechas si se desea, o usar lógica de disableExpired
+      // Pero disableExpired ya corre en getAll/getActive.
+      // Si el evento está inactivo por expiración (activo=0), quizás deberíamos bloquear
+      // Pero el usuario dice "cuando expire ... no se debe poder editar".
+      
+      // Comprobación robusta de fecha
+      const now = new Date();
+      // Set to beginning of day for date comparison if time is not involved or handled separately
+      // But let's follow the logic: if date < now (past day), expired.
+      // if date == today, check time.
+      const eventDateStr = evento.fecha_evento.toISOString().split('T')[0];
+      const todayStr = now.toISOString().split('T')[0];
+      
+      let isExpired = false;
+      if (eventDateStr < todayStr) {
+          isExpired = true;
+      } else if (eventDateStr === todayStr && evento.hora_evento) {
+           // hora_evento comes as string 'HH:MM:SS' usually
+           const [h, m] = evento.hora_evento.split(':');
+           const eventTime = new Date(now);
+           eventTime.setHours(h, m, 0);
+           if (now > eventTime) {
+               isExpired = true;
+           }
+      }
+
+      if (isExpired) {
+          return res.status(403).json({
+              error: 'No se puede editar un evento que ya ha expirado'
+          });
       }
 
       // Validar permisos específicos de subsecretaria
