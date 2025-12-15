@@ -26,15 +26,35 @@ const Usuarios = () => {
     nombre: '',
     email: '',
     password: '',
-    rol: 'user'
+    rol: 'user',
+    subsecretaria_id: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [subsecretarias, setSubsecretarias] = useState([]);
 
   // Cargar usuarios al montar el componente
   useEffect(() => {
     loadUsuarios();
+    loadSubsecretarias();
   }, []);
+
+  const loadSubsecretarias = async () => {
+    try {
+      // Necesitamos importar el servicio de subsecretarias
+      const response = await fetch('http://localhost:5000/api/subsecretarias', {
+         headers: {
+             'Authorization': `Bearer ${localStorage.getItem('token')}`
+         }
+      });
+      if(response.ok){
+          const data = await response.json();
+          setSubsecretarias(data);
+      }
+    } catch(err){
+        console.error('Error cargando subsecretarias', err);
+    }
+  };
 
   const loadUsuarios = async () => {
     try {
@@ -73,7 +93,8 @@ const Usuarios = () => {
       nombre: '',
       email: '',
       password: '',
-      rol: 'user'
+      rol: 'user',
+      subsecretaria_id: ''
     });
     setShowPassword(false);
     setShowModal(true);
@@ -88,7 +109,8 @@ const Usuarios = () => {
       nombre: usuario.nombre,
       email: usuario.email,
       password: '',
-      rol: usuario.rol
+      rol: usuario.rol,
+      subsecretaria_id: usuario.subsecretaria_id || ''
     });
     setShowPassword(false);
     setShowModal(true);
@@ -101,28 +123,26 @@ const Usuarios = () => {
     e.preventDefault();
 
     try {
-      if (editingUser) {
-        // Actualizar usuario
-        const updateData = {
+      const dataToSave = {
           nombre: formData.nombre,
           email: formData.email,
-          rol: formData.rol
-        };
+          rol: formData.rol,
+          subsecretaria_id: formData.subsecretaria_id || null
+      };
+
+      if (editingUser) {
+        // Actualizar usuario
         // Solo incluir contraseña si se proporcionó una nueva
         if (formData.password.trim()) {
-          updateData.password = formData.password;
+          dataToSave.password = formData.password;
         }
 
-        await authAPI.updateUser(editingUser.id, updateData);
+        await authAPI.updateUser(editingUser.id, dataToSave);
         setSuccess('Usuario actualizado exitosamente');
       } else {
         // Crear usuario
-        await authAPI.register({
-          nombre: formData.nombre,
-          email: formData.email,
-          password: formData.password,
-          rol: formData.rol
-        });
+        dataToSave.password = formData.password;
+        await authAPI.register(dataToSave);
         setSuccess('Usuario creado exitosamente');
       }
 
@@ -254,11 +274,18 @@ const Usuarios = () => {
                     <td>
                       <span className={`badge ${
                         usuario.rol === 'admin' ? 'badge-danger' :
-                        usuario.rol === 'visitante' ? 'badge-warning' : 'badge-info'
+                        usuario.rol === 'visitante' ? 'badge-warning' : 
+                        usuario.rol === 'subsecretaria' ? 'badge-info' : 'badge-secondary'
                       }`}>
                         {usuario.rol === 'admin' ? 'Administrador' :
-                         usuario.rol === 'visitante' ? 'Visitante' : 'Usuario'}
+                         usuario.rol === 'visitante' ? 'Visitante' : 
+                         usuario.rol === 'subsecretaria' ? 'Subsecretaria' : 'Usuario'}
                       </span>
+                      {usuario.rol === 'subsecretaria' && usuario.subsecretaria_nombre && (
+                          <div style={{fontSize: '0.8em', color: '#666'}}>
+                              ({usuario.subsecretaria_nombre})
+                          </div>
+                      )}
                     </td>
                     <td>
                       <span className={`badge ${usuario.activo ? 'badge-success' : 'badge-danger'}`}>
@@ -375,8 +402,29 @@ const Usuarios = () => {
                 <option value="user">Usuario</option>
                 <option value="admin">Administrador</option>
                 <option value="visitante">Visitante</option>
+                <option value="subsecretaria">Subsecretaria</option>
               </select>
             </div>
+
+            {formData.rol === 'subsecretaria' && (
+                <div className="form-group">
+                    <label htmlFor="subsecretaria_id">Subsecretaria asignada *</label>
+                    <select
+                        id="subsecretaria_id"
+                        name="subsecretaria_id"
+                        value={formData.subsecretaria_id}
+                        onChange={handleInputChange}
+                        required={formData.rol === 'subsecretaria'}
+                    >
+                        <option value="">Seleccione una subsecretaria</option>
+                        {subsecretarias.map(sub => (
+                            <option key={sub.id} value={sub.id}>
+                                {sub.nombre}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
 
             <div className="modal-actions">
               <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>

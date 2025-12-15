@@ -9,7 +9,8 @@ class AuthController {
         id: user.id,
         email: user.email,
         rol: user.rol,
-        nombre: user.nombre
+        nombre: user.nombre,
+        subsecretaria_id: user.subsecretaria_id
       },
       process.env.JWT_SECRET || 'tu_clave_secreta_jwt',
       { expiresIn: '24h' }
@@ -53,7 +54,8 @@ class AuthController {
           id: user.id,
           nombre: user.nombre,
           email: user.email,
-          rol: user.rol
+          rol: user.rol,
+          subsecretaria_id: user.subsecretaria_id
         }
       });
     } catch (error) {
@@ -65,7 +67,7 @@ class AuthController {
   // Registro de usuarios (solo para usuarios autenticados)
   static async register(req, res) {
     try {
-      const { nombre, email, password, rol } = req.body;
+      const { nombre, email, password, rol, subsecretaria_id } = req.body;
 
       // Verificar que el usuario que registra esté autenticado
       if (!req.user) {
@@ -95,19 +97,26 @@ class AuthController {
         });
       }
 
-    // Solo admins pueden crear usuarios (visitantes no pueden crear nada)
-    if (req.user.rol !== 'admin') {
-      return res.status(403).json({
-        error: 'Solo los administradores pueden crear usuarios'
-      });
-    }
+      // Solo admins pueden crear usuarios (visitantes no pueden crear nada)
+      if (req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden crear usuarios'
+        });
+      }
 
-    // Solo admins pueden crear otros admins
-    if (rol === 'admin' && req.user.rol !== 'admin') {
-      return res.status(403).json({
-        error: 'Solo los administradores pueden crear usuarios administradores'
-      });
-    }
+      // Solo admins pueden crear otros admins
+      if (rol === 'admin' && req.user.rol !== 'admin') {
+        return res.status(403).json({
+          error: 'Solo los administradores pueden crear usuarios administradores'
+        });
+      }
+      
+      // Si el rol es subsecretaria, se requiere subsecretaria_id
+      if (rol === 'subsecretaria' && !subsecretaria_id) {
+          return res.status(400).json({
+              error: 'Para el rol de subsecretaria, se debe especificar una subsecretaria'
+          });
+      }
 
       // Verificar si el email ya existe
       const existingUser = await Usuario.findByEmail(email);
@@ -121,7 +130,8 @@ class AuthController {
         nombre,
         email,
         password,
-        rol: rol || 'user'
+        rol: rol || 'user',
+        subsecretaria_id: subsecretaria_id || null
       };
 
       const newUser = await Usuario.create(userData);
@@ -179,7 +189,7 @@ class AuthController {
   static async update(req, res) {
     try {
       const { id } = req.params;
-      const { nombre, email, password, rol } = req.body;
+      const { nombre, email, password, rol, subsecretaria_id } = req.body;
 
       // Solo admins pueden actualizar usuarios
       if (req.user.rol !== 'admin') {
@@ -194,12 +204,20 @@ class AuthController {
           error: 'Solo los administradores pueden cambiar roles'
         });
       }
+      
+      // Si el rol es subsecretaria, se requiere subsecretaria_id
+      if (rol === 'subsecretaria' && !subsecretaria_id) {
+           return res.status(400).json({
+              error: 'Para el rol de subsecretaria, se debe especificar una subsecretaria'
+           });
+      }
 
       const userData = {};
       if (nombre) userData.nombre = nombre;
       if (email) userData.email = email;
       if (password) userData.password = password;
       if (rol && req.user.rol === 'admin') userData.rol = rol;
+      if (req.user.rol === 'admin') userData.subsecretaria_id = subsecretaria_id || null;
 
       if (Object.keys(userData).length === 0) {
         return res.status(400).json({

@@ -7,6 +7,7 @@ class EventoController {
       const eventos = await Evento.findAll();
       res.json(eventos);
     } catch (error) {
+      console.error('Error in EventoController.getAll:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -16,6 +17,7 @@ class EventoController {
       const eventos = await Evento.findActive();
       res.json(eventos);
     } catch (error) {
+      console.error('Error in EventoController.getActive:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -41,10 +43,12 @@ class EventoController {
 
   static async create(req, res) {
     try {
-      // Solo admins pueden crear eventos
-      if (req.user.rol !== 'admin') {
+      const { rol, subsecretaria_id: userSubsecretariaId } = req.user;
+      
+      // Permitir crear a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden crear eventos'
+          error: 'No tienes permisos para crear eventos'
         });
       }
 
@@ -56,7 +60,22 @@ class EventoController {
         return res.status(400).json({ error: 'Nombre y fecha del evento son requeridos' });
       }
 
-      const evento = await Evento.create({ nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
+      // Si es rol subsecretaria, forzar el ID de su subsecretaria
+      let finalSubsecretariaId = subsecretaria_id;
+      if (rol === 'subsecretaria') {
+        finalSubsecretariaId = userSubsecretariaId;
+      }
+
+      const evento = await Evento.create({ 
+        nombre, 
+        descripcion, 
+        fecha_evento, 
+        hora_evento, 
+        lugar, 
+        subsecretaria_id: finalSubsecretariaId, 
+        tipo_id, 
+        subtipo_id 
+      });
       res.status(201).json(evento);
     } catch (error) {
       console.error('Error al crear evento:', error);
@@ -66,14 +85,16 @@ class EventoController {
 
   static async update(req, res) {
     try {
-      // Solo admins pueden actualizar eventos
-      if (req.user.rol !== 'admin') {
+      const { rol, subsecretaria_id: userSubsecretariaId } = req.user;
+      const { id } = req.params;
+      
+      // Permitir actualizar a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden actualizar eventos'
+          error: 'No tienes permisos para actualizar eventos'
         });
       }
 
-      const { id } = req.params;
       const { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id } = req.body;
 
       console.log('Datos recibidos para actualizar evento:', { id, nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
@@ -87,7 +108,32 @@ class EventoController {
         return res.status(404).json({ error: 'Evento no encontrado' });
       }
 
-      const updated = await Evento.update(id, { nombre, descripcion, fecha_evento, hora_evento, lugar, subsecretaria_id, tipo_id, subtipo_id });
+      // Validar permisos específicos de subsecretaria
+      if (rol === 'subsecretaria') {
+        // Solo puede editar eventos de su propia subsecretaria
+        if (evento.subsecretaria_id !== userSubsecretariaId) {
+             return res.status(403).json({
+              error: 'No puedes editar eventos de otra subsecretaria'
+            });
+        }
+      }
+
+      // Si es rol subsecretaria, asegurar que no cambie la subsecretaria a otra
+      let finalSubsecretariaId = subsecretaria_id;
+      if (rol === 'subsecretaria') {
+        finalSubsecretariaId = userSubsecretariaId;
+      }
+
+      const updated = await Evento.update(id, { 
+        nombre, 
+        descripcion, 
+        fecha_evento, 
+        hora_evento, 
+        lugar, 
+        subsecretaria_id: finalSubsecretariaId, 
+        tipo_id, 
+        subtipo_id 
+      });
       res.json(updated);
     } catch (error) {
       console.error('Error al actualizar evento:', error);
@@ -97,18 +143,30 @@ class EventoController {
 
   static async delete(req, res) {
     try {
-      // Solo admins pueden eliminar eventos
-      if (req.user.rol !== 'admin') {
+      const { rol, subsecretaria_id: userSubsecretariaId } = req.user;
+      const { id } = req.params;
+
+      // Permitir eliminar a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden eliminar eventos'
+          error: 'No tienes permisos para eliminar eventos'
         });
       }
 
-      const { id } = req.params;
       const evento = await Evento.findById(id);
       
       if (!evento) {
         return res.status(404).json({ error: 'Evento no encontrado' });
+      }
+
+      // Validar permisos específicos de subsecretaria
+      if (rol === 'subsecretaria') {
+        // Solo puede eliminar eventos de su propia subsecretaria
+        if (evento.subsecretaria_id !== userSubsecretariaId) {
+             return res.status(403).json({
+              error: 'No puedes eliminar eventos de otra subsecretaria'
+            });
+        }
       }
 
       await Evento.delete(id);
@@ -120,14 +178,30 @@ class EventoController {
 
   static async toggleActivo(req, res) {
     try {
-      // Solo admins pueden cambiar el estado de eventos
-      if (req.user.rol !== 'admin') {
+      const { rol, subsecretaria_id: userSubsecretariaId } = req.user;
+      const { id } = req.params;
+
+      // Permitir cambiar estado a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
         return res.status(403).json({
-          error: 'Solo los administradores pueden cambiar el estado de eventos'
+          error: 'No tienes permisos para cambiar el estado de eventos'
         });
       }
 
-      const { id } = req.params;
+      // Necesitamos buscar el evento primero para verificar permisos de subsecretaria
+      const eventoExistente = await Evento.findById(id);
+      if (!eventoExistente) {
+        return res.status(404).json({ error: 'Evento no encontrado' });
+      }
+
+      if (rol === 'subsecretaria') {
+          if (eventoExistente.subsecretaria_id !== userSubsecretariaId) {
+               return res.status(403).json({
+                error: 'No puedes cambiar el estado de eventos de otra subsecretaria'
+              });
+          }
+      }
+
       const evento = await Evento.toggleActivo(id);
       
       if (!evento) {
@@ -152,4 +226,3 @@ class EventoController {
 }
 
 module.exports = EventoController;
-

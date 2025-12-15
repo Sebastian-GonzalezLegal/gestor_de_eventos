@@ -38,6 +38,15 @@ class SubtipoController {
 
   static async create(req, res) {
     try {
+      const { rol } = req.user;
+      
+      // Permitir crear a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
+        return res.status(403).json({
+          error: 'No tienes permisos para crear subtipos'
+        });
+      }
+
       const { nombre, tipo_id } = req.body;
 
       if (!nombre || !tipo_id) {
@@ -59,6 +68,15 @@ class SubtipoController {
 
   static async update(req, res) {
     try {
+      const { rol } = req.user;
+      
+      // Permitir actualizar a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
+        return res.status(403).json({
+          error: 'No tienes permisos para actualizar subtipos'
+        });
+      }
+
       const { id } = req.params;
       const { nombre, tipo_id } = req.body;
 
@@ -86,6 +104,15 @@ class SubtipoController {
 
   static async delete(req, res) {
     try {
+      const { rol } = req.user;
+      
+      // Permitir eliminar a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
+        return res.status(403).json({
+          error: 'No tienes permisos para eliminar subtipos'
+        });
+      }
+
       const { id } = req.params;
       const subtipo = await Subtipo.findById(id);
 

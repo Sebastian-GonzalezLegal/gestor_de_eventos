@@ -31,6 +31,15 @@ class TipoController {
 
   static async create(req, res) {
     try {
+      const { rol } = req.user;
+      
+      // Permitir crear a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
+        return res.status(403).json({
+          error: 'No tienes permisos para crear tipos'
+        });
+      }
+
       const { nombre } = req.body;
 
       if (!nombre) {
@@ -46,6 +55,15 @@ class TipoController {
 
   static async update(req, res) {
     try {
+      const { rol } = req.user;
+      
+      // Permitir actualizar a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
+        return res.status(403).json({
+          error: 'No tienes permisos para actualizar tipos'
+        });
+      }
+
       const { id } = req.params;
       const { nombre } = req.body;
 
@@ -67,6 +85,15 @@ class TipoController {
 
   static async delete(req, res) {
     try {
+      const { rol } = req.user;
+      
+      // Permitir eliminar a admins y subsecretarias
+      if (rol !== 'admin' && rol !== 'subsecretaria') {
+        return res.status(403).json({
+          error: 'No tienes permisos para eliminar tipos'
+        });
+      }
+
       const { id } = req.params;
       const tipo = await Tipo.findById(id);
 

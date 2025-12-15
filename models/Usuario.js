@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 class Usuario {
   static async findAll() {
     return new Promise((resolve, reject) => {
-      db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios ORDER BY fecha_creacion DESC', (err, results) => {
+      db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id ORDER BY u.fecha_creacion DESC', (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -13,7 +13,7 @@ class Usuario {
 
   static async findById(id) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = ?', [id], (err, results) => {
+      db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id WHERE u.id = ?', [id], (err, results) => {
         if (err) reject(err);
         else resolve(results[0]);
       });
@@ -32,15 +32,15 @@ class Usuario {
   static async create(usuarioData) {
     return new Promise(async (resolve, reject) => {
       try {
-        const { nombre, email, password, rol = 'user' } = usuarioData;
+        const { nombre, email, password, rol = 'user', subsecretaria_id = null } = usuarioData;
 
         // Hash de la contraseña
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         db.query(
-          'INSERT INTO usuarios (nombre, email, password, rol) VALUES (?, ?, ?, ?)',
-          [nombre, email, hashedPassword, rol],
+          'INSERT INTO usuarios (nombre, email, password, rol, subsecretaria_id) VALUES (?, ?, ?, ?, ?)',
+          [nombre, email, hashedPassword, rol, subsecretaria_id],
           (err, results) => {
             if (err) reject(err);
             else resolve({
@@ -48,6 +48,7 @@ class Usuario {
               nombre,
               email,
               rol,
+              subsecretaria_id,
               activo: true,
               fecha_creacion: new Date()
             });
@@ -62,9 +63,9 @@ class Usuario {
   static async update(id, usuarioData) {
     return new Promise(async (resolve, reject) => {
       try {
-        const { nombre, email, password, rol } = usuarioData;
-        let query = 'UPDATE usuarios SET nombre = ?, email = ?, rol = ?';
-        let params = [nombre, email, rol];
+        const { nombre, email, password, rol, subsecretaria_id } = usuarioData;
+        let query = 'UPDATE usuarios SET nombre = ?, email = ?, rol = ?, subsecretaria_id = ?';
+        let params = [nombre, email, rol, subsecretaria_id];
 
         // Si se proporciona una nueva contraseña, hacer hash
         if (password) {
@@ -81,7 +82,7 @@ class Usuario {
           if (err) reject(err);
           else {
             // Obtener el usuario actualizado
-            db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = ?', [id], (err2, results2) => {
+            db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id WHERE u.id = ?', [id], (err2, results2) => {
               if (err2) reject(err2);
               else resolve(results2[0]);
             });
@@ -107,7 +108,7 @@ class Usuario {
       db.query('UPDATE usuarios SET activo = NOT activo WHERE id = ?', [id], (err, results) => {
         if (err) reject(err);
         else {
-          db.query('SELECT id, nombre, email, rol, activo, fecha_creacion, fecha_actualizacion FROM usuarios WHERE id = ?', [id], (err2, results2) => {
+          db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id WHERE u.id = ?', [id], (err2, results2) => {
             if (err2) reject(err2);
             else resolve(results2[0]);
           });
