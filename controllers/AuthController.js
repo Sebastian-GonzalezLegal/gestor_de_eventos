@@ -172,10 +172,10 @@ class AuthController {
     }
   }
 
-  // Obtener todos los usuarios (admins y visitantes pueden ver)
+  // Obtener todos los usuarios (admins, subsecretarias y visitantes pueden ver)
   static async getAll(req, res) {
     try {
-      if (!req.user || (req.user.rol !== 'admin' && req.user.rol !== 'visitante')) {
+      if (!req.user || (req.user.rol !== 'admin' && req.user.rol !== 'visitante' && req.user.rol !== 'subsecretaria')) {
         return res.status(403).json({
           error: 'No tienes permisos para ver usuarios'
         });

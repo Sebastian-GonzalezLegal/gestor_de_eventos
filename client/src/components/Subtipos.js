@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaFilter } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaFilter, FaIdCard, FaTag, FaCalendarAlt, FaTimes } from 'react-icons/fa';
 import { subtiposAPI, tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
@@ -245,15 +245,15 @@ const Subtipos = () => {
                 <div className="evento-content">
                   <div className="evento-details">
                     <div className="detail-item">
-                      <span role="img" aria-label="ID">🆔</span>
+                      <FaIdCard className="detail-icon" />
                       <span>ID: {subtipo.id}</span>
                     </div>
                     <div className="detail-item">
-                      <span role="img" aria-label="Tipo">🏷️</span>
+                      <FaTag className="detail-icon" />
                       <span>Tipo: {subtipo.tipo_nombre}</span>
                     </div>
                     <div className="detail-item">
-                      <span role="img" aria-label="Fecha">📅</span>
+                      <FaCalendarAlt className="detail-icon" />
                       <span>Creado: {new Date(subtipo.fecha_creacion).toLocaleDateString('es-ES')}</span>
                     </div>
                   </div>
@@ -271,7 +271,7 @@ const Subtipos = () => {
               <h3>
                 {editingSubtipo ? 'Editar Subtipo' : 'Nuevo Subtipo'}
               </h3>
-              <button className="modal-close" onClick={closeModal}>×</button>
+              <button className="modal-close" onClick={closeModal}><FaTimes /></button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">

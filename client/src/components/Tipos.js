@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaList } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaList, FaIdCard, FaCalendarAlt, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
@@ -164,11 +164,11 @@ const Tipos = () => {
                 <div className="tipo-content">
                   <div className="tipo-details">
                     <div className="detail-item">
-                      <span role="img" aria-label="ID">🆔</span>
+                      <FaIdCard className="detail-icon" />
                       <span>ID: {tipo.id}</span>
                     </div>
                     <div className="detail-item">
-                      <span role="img" aria-label="Fecha">📅</span>
+                      <FaCalendarAlt className="detail-icon" />
                       <span>Creado: {new Date(tipo.fecha_creacion).toLocaleDateString('es-ES')}</span>
                     </div>
                   </div>
@@ -186,7 +186,7 @@ const Tipos = () => {
               <h3>
                 {editingTipo ? 'Editar Tipo' : 'Nuevo Tipo'}
               </h3>
-              <button className="close-btn" onClick={closeModal}>×</button>
+              <button className="close-btn" onClick={closeModal}><FaTimes /></button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">

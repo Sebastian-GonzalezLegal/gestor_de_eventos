@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaInfoCircle, FaBan, FaCheck, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaInfoCircle, FaBan, FaCheck, FaSearch, FaTimes } from 'react-icons/fa';
 import { vecinosAPI } from '../services/api';
 import VecinoForm from './VecinoForm';
 import VecinoDetalle from './VecinoDetalle';
@@ -149,7 +149,7 @@ const Vecinos = () => {
                 }}
                 title="Limpiar búsqueda"
               >
-                ×
+                <FaTimes />
               </button>
             )}
           </div>

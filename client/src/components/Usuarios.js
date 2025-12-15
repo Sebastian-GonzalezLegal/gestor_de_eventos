@@ -13,6 +13,7 @@ import {
 import { authAPI } from '../services/api';
 import Modal from './Modal';
 import { useUser } from '../contexts/UserContext';
+import './Usuarios.css';
 
 const Usuarios = () => {
   const { user, isAdmin } = useUser();

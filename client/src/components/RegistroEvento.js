@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers } from 'react-icons/fa';
+import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers, FaTimes, FaMapMarkerAlt, FaClock, FaBuilding, FaTag } from 'react-icons/fa';
 import { registrosAPI, vecinosAPI, eventosAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import './RegistroEvento.css';
@@ -157,7 +157,7 @@ const RegistroEvento = () => {
                       }}
                       title="Limpiar búsqueda"
                     >
-                      ×
+                      <FaTimes />
                     </button>
                   )}
                 </div>
@@ -291,11 +291,11 @@ const RegistroEvento = () => {
                             </div>
                           </div>
                           <div className="evento-detalles">
-                            <span className="evento-lugar">📍 {evento.lugar || 'Sin lugar'}</span>
-                            <span className="evento-hora">🕒 {evento.hora_evento || 'Sin hora'}</span>
-                            <span className="evento-subsecretaria">🏢 {evento.subsecretaria_nombre || 'Sin subsecretaría'}</span>
-                            <span className="evento-tipo">🏷️ {evento.tipo_nombre || 'Sin tipo'}</span>
-                            {evento.subtipo_nombre && <span>🏷️ {evento.subtipo_nombre}</span>}
+                            <span className="evento-lugar"><FaMapMarkerAlt /> {evento.lugar || 'Sin lugar'}</span>
+                            <span className="evento-hora"><FaClock /> {evento.hora_evento || 'Sin hora'}</span>
+                            <span className="evento-subsecretaria"><FaBuilding /> {evento.subsecretaria_nombre || 'Sin subsecretaría'}</span>
+                            <span className="evento-tipo"><FaTag /> {evento.tipo_nombre || 'Sin tipo'}</span>
+                            {evento.subtipo_nombre && <span><FaTag /> {evento.subtipo_nombre}</span>}
                           </div>
                           <div className="evento-fecha-registro">
                             Registrado: {new Date(evento.fecha_registro).toLocaleString('es-ES')}

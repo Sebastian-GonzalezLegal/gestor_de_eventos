@@ -1,5 +1,5 @@
 .usuarios-container {
-  /* Hereda estilos generales */
+  padding: 16px 0;
 }
 
 .usuarios-container .loading {

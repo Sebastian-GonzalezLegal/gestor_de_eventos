@@ -92,8 +92,9 @@
   font-size: 0.95rem;
 }
 
-.detail-item span:first-child {
+.detail-icon {
   font-size: 1.1rem;
+  color: var(--primary);
 }
 
 .detail-item span:last-child {

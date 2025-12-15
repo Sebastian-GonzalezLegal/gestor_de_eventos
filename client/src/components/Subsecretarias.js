@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaIdCard, FaCalendarAlt, FaTimes } from 'react-icons/fa';
 import { subsecretariasAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
@@ -150,11 +150,11 @@ const Subsecretarias = () => {
                 <div className="evento-content">
                   <div className="evento-details">
                     <div className="detail-item">
-                      <span role="img" aria-label="ID">🆔</span>
+                      <FaIdCard className="detail-icon" />
                       <span>ID: {subsecretaria.id}</span>
                     </div>
                     <div className="detail-item">
-                      <span role="img" aria-label="Fecha">📅</span>
+                      <FaCalendarAlt className="detail-icon" />
                       <span>Creado: {new Date(subsecretaria.fecha_creacion).toLocaleDateString('es-ES')}</span>
                     </div>
                   </div>
@@ -172,7 +172,7 @@ const Subsecretarias = () => {
               <h3>
                 {editingSubsecretaria ? 'Editar Subsecretaría' : 'Nueva Subsecretaría'}
               </h3>
-              <button className="modal-close" onClick={closeModal}>×</button>
+              <button className="modal-close" onClick={closeModal}><FaTimes /></button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="form-group">

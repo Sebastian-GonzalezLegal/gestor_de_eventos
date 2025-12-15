@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch, FaTimes, FaBuilding, FaTag } from 'react-icons/fa';
 import { eventosAPI } from '../services/api';
 import EventoForm from './EventoForm';
 import { useUser } from '../contexts/UserContext';
@@ -143,7 +143,7 @@ const Eventos = () => {
               }}
               title="Limpiar búsqueda"
             >
-              ×
+              <FaTimes />
             </button>
           )}
         </div>
@@ -170,17 +170,17 @@ const Eventos = () => {
                     <div className="evento-category-badges">
                       {evento.subsecretaria_nombre && (
                         <span className="category-badge category-subsecretaria">
-                          🏢 {evento.subsecretaria_nombre}
+                          <FaBuilding /> {evento.subsecretaria_nombre}
                         </span>
                       )}
                       {evento.tipo_nombre && (
                         <span className="category-badge category-tipo">
-                          🏷️ {evento.tipo_nombre}
+                          <FaTag /> {evento.tipo_nombre}
                         </span>
                       )}
                       {evento.subtipo_nombre && (
                         <span className="category-badge category-subtipo">
-                          🏷️ {evento.subtipo_nombre}
+                          <FaTag /> {evento.subtipo_nombre}
                         </span>
                       )}
                     </div>
