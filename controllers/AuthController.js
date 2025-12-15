@@ -145,6 +145,10 @@ class AuthController {
       });
     } catch (error) {
       console.error('Error en registro:', error);
+      // Manejar error de clave foránea si subsecretaria_id es inválido
+      if (error.code === 'ER_NO_REFERENCED_ROW_2' || (error.message && error.message.includes('foreign key constraint fails'))) {
+        return res.status(400).json({ error: 'La subsecretaría seleccionada no es válida.' });
+      }
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   }
@@ -242,6 +246,10 @@ class AuthController {
       });
     } catch (error) {
       console.error('Error al actualizar usuario:', error);
+      // Manejar error de clave foránea si subsecretaria_id es inválido
+      if (error.code === 'ER_NO_REFERENCED_ROW_2' || (error.message && error.message.includes('foreign key constraint fails'))) {
+        return res.status(400).json({ error: 'La subsecretaría seleccionada no es válida.' });
+      }
       res.status(500).json({ error: 'Error interno del servidor' });
     }
   }

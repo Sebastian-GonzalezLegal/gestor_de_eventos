@@ -4,10 +4,17 @@ class RegistroEvento {
   static async findAll() {
     return new Promise((resolve, reject) => {
       db.query(
-        `SELECT re.*, v.nombre, v.apellido, v.documento, e.nombre as evento_nombre, e.fecha_evento
+        `SELECT re.*, v.nombre, v.apellido, v.documento, 
+                e.nombre as evento_nombre, e.fecha_evento, e.lugar, e.hora_evento,
+                s.nombre as subsecretaria_nombre,
+                t.nombre as tipo_nombre,
+                st.nombre as subtipo_nombre
          FROM registros_eventos re
          INNER JOIN vecinos v ON re.vecino_id = v.id
          INNER JOIN eventos e ON re.evento_id = e.id
+         LEFT JOIN subsecretarias s ON e.subsecretaria_id = s.id
+         LEFT JOIN tipos t ON e.tipo_id = t.id
+         LEFT JOIN subtipos st ON e.subtipo_id = st.id
          ORDER BY re.fecha_registro DESC`,
         (err, results) => {
           if (err) reject(err);
@@ -20,10 +27,17 @@ class RegistroEvento {
   static async findById(id) {
     return new Promise((resolve, reject) => {
       db.query(
-        `SELECT re.*, v.nombre, v.apellido, v.documento, e.nombre as evento_nombre
+        `SELECT re.*, v.nombre, v.apellido, v.documento, 
+                e.nombre as evento_nombre, e.fecha_evento, e.lugar, e.hora_evento,
+                s.nombre as subsecretaria_nombre,
+                t.nombre as tipo_nombre,
+                st.nombre as subtipo_nombre
          FROM registros_eventos re
          INNER JOIN vecinos v ON re.vecino_id = v.id
          INNER JOIN eventos e ON re.evento_id = e.id
+         LEFT JOIN subsecretarias s ON e.subsecretaria_id = s.id
+         LEFT JOIN tipos t ON e.tipo_id = t.id
+         LEFT JOIN subtipos st ON e.subtipo_id = st.id
          WHERE re.id = ?`,
         [id],
         (err, results) => {

@@ -87,6 +87,10 @@ class EventoController {
       res.status(201).json(evento);
     } catch (error) {
       console.error('Error al crear evento:', error);
+      // Manejar error de clave foránea
+      if (error.code === 'ER_NO_REFERENCED_ROW_2' || (error.message && error.message.includes('foreign key constraint fails'))) {
+        return res.status(400).json({ error: `La subsecretaría, tipo o subtipo seleccionado no es válido. Verifique los IDs: subsecretaria_id=${req.body.subsecretaria_id}, tipo_id=${req.body.tipo_id}, subtipo_id=${req.body.subtipo_id}` });
+      }
       res.status(500).json({ error: error.message });
     }
   }
@@ -150,6 +154,10 @@ class EventoController {
       res.json(updated);
     } catch (error) {
       console.error('Error al actualizar evento:', error);
+      // Manejar error de clave foránea
+      if (error.code === 'ER_NO_REFERENCED_ROW_2' || (error.message && error.message.includes('foreign key constraint fails'))) {
+        return res.status(400).json({ error: `La subsecretaría, tipo o subtipo seleccionado no es válido. Verifique los IDs: subsecretaria_id=${req.body.subsecretaria_id}, tipo_id=${req.body.tipo_id}, subtipo_id=${req.body.subtipo_id}` });
+      }
       res.status(500).json({ error: error.message });
     }
   }

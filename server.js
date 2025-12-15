@@ -20,6 +20,7 @@ const subsecretariaRoutes = require('./routes/subsecretariaRoutes');
 const tipoRoutes = require('./routes/tipoRoutes');
 const subtipoRoutes = require('./routes/subtipoRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const fixForeignKeys = require('./database/fix_fk_constraint');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/vecinos', vecinoRoutes);
@@ -35,7 +36,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Servidor funcionando correctamente' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+// Ejecutar corrección de FK antes de iniciar el servidor (o al iniciar)
+fixForeignKeys().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en puerto ${PORT}`);
+  });
 });
 

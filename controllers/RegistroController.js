@@ -44,14 +44,17 @@ class RegistroController {
         return res.status(400).json({ error: 'Vecino y evento son requeridos' });
       }
 
+      const parsedVecinoId = parseInt(vecino_id);
+      const parsedEventoId = parseInt(evento_id);
+
       // Verificar que el vecino existe
-      const vecino = await Vecino.findById(vecino_id);
+      const vecino = await Vecino.findById(parsedVecinoId);
       if (!vecino) {
         return res.status(404).json({ error: 'Vecino no encontrado' });
       }
 
       // Verificar que el evento existe
-      const evento = await Evento.findById(evento_id);
+      const evento = await Evento.findById(parsedEventoId);
       if (!evento) {
         return res.status(404).json({ error: 'Evento no encontrado' });
       }
@@ -66,9 +69,20 @@ class RegistroController {
         }
       }
 
-      const registro = await RegistroEvento.create({ vecino_id, evento_id, notas });
+      const registro = await RegistroEvento.create({ 
+        vecino_id: parsedVecinoId, 
+        evento_id: parsedEventoId, 
+        notas 
+      });
       res.status(201).json(registro);
     } catch (error) {
+      // Manejar error de clave foránea (posiblemente vecino o evento eliminado concurrentemente)
+      if (error.code === 'ER_NO_REFERENCED_ROW_2' || (error.message && error.message.includes('foreign key constraint fails'))) {
+        console.error(`Error FK al registrar: vecino_id=${req.body.vecino_id}, evento_id=${req.body.evento_id}`);
+        return res.status(400).json({ 
+          error: `No se pudo crear el registro: El vecino (ID: ${req.body.vecino_id}) o evento (ID: ${req.body.evento_id}) no existen (o fueron eliminados).` 
+        });
+      }
       res.status(500).json({ error: error.message });
     }
   }
@@ -163,9 +177,11 @@ class RegistroController {
         });
       }
 
+      const parsedEventoId = parseInt(evento_id);
+      
       const registro = await RegistroEvento.create({
         vecino_id: vecino.id,
-        evento_id,
+        evento_id: parsedEventoId,
         notas
       });
 
@@ -175,6 +191,19 @@ class RegistroController {
         evento
       });
     } catch (error) {
+      // Manejar error de clave foránea
+      if (error.code === 'ER_NO_REFERENCED_ROW_2' || (error.message && error.message.includes('foreign key constraint fails'))) {
+        // En caso de error, intentar obtener los IDs del vecino encontrado para el log (aunque 'vecino' puede no estar accesible aquí si falló antes, pero en este catch sí debería estar si falló el create)
+        // Pero 'vecino' está en el scope del try.
+        // No podemos acceder a 'vecino' aqui directamente si se define en try con const. 
+        // Ah, 'vecino' está en el scope del try block. El catch block es hermano.
+        // Necesitamos mover la declaración de vecino fuera del try o simplemente loguear lo que tenemos en request.
+        
+        console.error(`Error FK detallado: documento=${req.body.documento}, evento_id=${req.body.evento_id}`);
+        return res.status(400).json({ 
+          error: `No se pudo crear el registro: Fallo de integridad referencial. Verifique logs del servidor para detalles.` 
+        });
+      }
       res.status(500).json({ error: error.message });
     }
   }
