@@ -56,29 +56,72 @@ class Vecino {
 
   static async create(vecinoData) {
     return new Promise((resolve, reject) => {
-      const { nombre, apellido, email, telefono, documento } = vecinoData;
-      db.query(
-        'INSERT INTO vecinos (nombre, apellido, email, telefono, documento) VALUES (?, ?, ?, ?, ?)',
-        [nombre, apellido, email || null, telefono || null, documento],
-        (err, results) => {
-          if (err) reject(err);
-          else resolve({ id: results.insertId, ...vecinoData });
-        }
-      );
+      const {
+        nombre, apellido, email, telefono, documento,
+        fecha_nacimiento, calle, altura, piso, departamento,
+        entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+        otra_localidad, celular, genero_id, estudio_id,
+        ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+      } = vecinoData;
+
+      const query = `
+        INSERT INTO vecinos (
+          nombre, apellido, email, telefono, documento,
+          fecha_nacimiento, calle, altura, piso, departamento,
+          entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+          otra_localidad, celular, genero_id, estudio_id,
+          ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
+
+      const values = [
+        nombre, apellido, email || null, telefono || null, documento,
+        fecha_nacimiento || null, calle || null, altura || null, piso || null, departamento || null,
+        entre_calle_1 || null, entre_calle_2 || null, barrio_id || null, localidad_id || null,
+        otra_localidad || null, celular || null, genero_id || null, estudio_id || null,
+        ocupacion || null, nacionalidad || null, estado_civil_id || null, barrio_especificacion || null
+      ];
+
+      db.query(query, values, (err, results) => {
+        if (err) reject(err);
+        else resolve({ id: results.insertId, ...vecinoData });
+      });
     });
   }
 
   static async update(id, vecinoData) {
     return new Promise((resolve, reject) => {
-      const { nombre, apellido, email, telefono, documento } = vecinoData;
-      db.query(
-        'UPDATE vecinos SET nombre = ?, apellido = ?, email = ?, telefono = ?, documento = ? WHERE id = ?',
-        [nombre, apellido, email || null, telefono || null, documento, id],
-        (err, results) => {
-          if (err) reject(err);
-          else resolve({ id, ...vecinoData });
-        }
-      );
+      const {
+        nombre, apellido, email, telefono, documento,
+        fecha_nacimiento, calle, altura, piso, departamento,
+        entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+        otra_localidad, celular, genero_id, estudio_id,
+        ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+      } = vecinoData;
+
+      const query = `
+        UPDATE vecinos SET
+          nombre = ?, apellido = ?, email = ?, telefono = ?, documento = ?,
+          fecha_nacimiento = ?, calle = ?, altura = ?, piso = ?, departamento = ?,
+          entre_calle_1 = ?, entre_calle_2 = ?, barrio_id = ?, localidad_id = ?,
+          otra_localidad = ?, celular = ?, genero_id = ?, estudio_id = ?,
+          ocupacion = ?, nacionalidad = ?, estado_civil_id = ?, barrio_especificacion = ?
+        WHERE id = ?
+      `;
+
+      const values = [
+        nombre, apellido, email || null, telefono || null, documento,
+        fecha_nacimiento || null, calle || null, altura || null, piso || null, departamento || null,
+        entre_calle_1 || null, entre_calle_2 || null, barrio_id || null, localidad_id || null,
+        otra_localidad || null, celular || null, genero_id || null, estudio_id || null,
+        ocupacion || null, nacionalidad || null, estado_civil_id || null, barrio_especificacion || null,
+        id
+      ];
+
+      db.query(query, values, (err, results) => {
+        if (err) reject(err);
+        else resolve({ id, ...vecinoData });
+      });
     });
   }
 

@@ -72,7 +72,13 @@ class VecinoController {
         });
       }
 
-      const { nombre, apellido, email, telefono, documento } = req.body;
+      const {
+        nombre, apellido, email, telefono, documento,
+        fecha_nacimiento, calle, altura, piso, departamento,
+        entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+        otra_localidad, celular, genero_id, estudio_id,
+        ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+      } = req.body;
 
       if (!nombre || !apellido || !documento) {
         return res.status(400).json({ error: 'Nombre, apellido y documento son requeridos' });
@@ -84,7 +90,15 @@ class VecinoController {
         return res.status(400).json({ error: 'Ya existe un vecino con este documento' });
       }
 
-      const vecino = await Vecino.create({ nombre, apellido, email, telefono, documento });
+      const vecinoData = {
+        nombre, apellido, email, telefono, documento,
+        fecha_nacimiento, calle, altura, piso, departamento,
+        entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+        otra_localidad, celular, genero_id, estudio_id,
+        ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+      };
+
+      const vecino = await Vecino.create(vecinoData);
       res.status(201).json(vecino);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -101,7 +115,13 @@ class VecinoController {
       }
 
       const { id } = req.params;
-      const { nombre, apellido, email, telefono, documento } = req.body;
+      const {
+        nombre, apellido, email, telefono, documento,
+        fecha_nacimiento, calle, altura, piso, departamento,
+        entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+        otra_localidad, celular, genero_id, estudio_id,
+        ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+      } = req.body;
 
       if (!nombre || !apellido || !documento) {
         return res.status(400).json({ error: 'Nombre, apellido y documento son requeridos' });
@@ -120,7 +140,15 @@ class VecinoController {
         }
       }
 
-      const updated = await Vecino.update(id, { nombre, apellido, email, telefono, documento });
+      const vecinoData = {
+        nombre, apellido, email, telefono, documento,
+        fecha_nacimiento, calle, altura, piso, departamento,
+        entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+        otra_localidad, celular, genero_id, estudio_id,
+        ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+      };
+
+      const updated = await Vecino.update(id, vecinoData);
       res.json(updated);
     } catch (error) {
       res.status(500).json({ error: error.message });

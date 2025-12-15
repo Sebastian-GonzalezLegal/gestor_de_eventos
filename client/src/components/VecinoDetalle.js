@@ -30,6 +30,15 @@ const VecinoDetalle = ({ vecino, onClose }) => {
               <strong>Teléfono</strong>
               <span>{vecino.telefono || '-'}</span>
             </div>
+             <div>
+              <strong>Dirección</strong>
+              <span>
+                {vecino.calle || ''} {vecino.altura || ''}
+                {vecino.piso ? ` Piso ${vecino.piso}` : ''}
+                {vecino.departamento ? ` Dpto ${vecino.departamento}` : ''}
+                {(!vecino.calle && !vecino.altura) && '-'}
+              </span>
+            </div>
             <div>
               <strong>Estado</strong>
               <span className={`badge ${vecino.activo ? 'badge-success' : 'badge-danger'}`}>

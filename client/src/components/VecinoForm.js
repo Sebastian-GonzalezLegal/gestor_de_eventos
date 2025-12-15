@@ -9,6 +9,10 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
     documento: '',
     email: '',
     telefono: '',
+    calle: '',
+    altura: '',
+    piso: '',
+    departamento: ''
   });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -21,6 +25,10 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
         documento: vecino.documento || '',
         email: vecino.email || '',
         telefono: vecino.telefono || '',
+        calle: vecino.calle || '',
+        altura: vecino.altura || '',
+        piso: vecino.piso || '',
+        departamento: vecino.departamento || ''
       });
     }
   }, [vecino]);
@@ -122,6 +130,56 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
                 onChange={handleChange}
                 placeholder="Teléfono de contacto"
               />
+            </div>
+
+            <h4 style={{marginTop: '20px', marginBottom: '10px', fontSize: '1.1em', color: '#555'}}>Dirección</h4>
+            
+            <div style={{display: 'flex', gap: '10px'}}>
+              <div className="form-group" style={{flex: 2}}>
+                <label>Calle</label>
+                <input
+                  type="text"
+                  name="calle"
+                  value={formData.calle}
+                  onChange={handleChange}
+                  placeholder="Calle"
+                />
+              </div>
+
+              <div className="form-group" style={{flex: 1}}>
+                <label>Altura</label>
+                <input
+                  type="text"
+                  name="altura"
+                  value={formData.altura}
+                  onChange={handleChange}
+                  placeholder="Número"
+                />
+              </div>
+            </div>
+
+            <div style={{display: 'flex', gap: '10px'}}>
+              <div className="form-group" style={{flex: 1}}>
+                <label>Piso</label>
+                <input
+                  type="text"
+                  name="piso"
+                  value={formData.piso}
+                  onChange={handleChange}
+                  placeholder="-"
+                />
+              </div>
+
+              <div className="form-group" style={{flex: 1}}>
+                <label>Depto</label>
+                <input
+                  type="text"
+                  name="departamento"
+                  value={formData.departamento}
+                  onChange={handleChange}
+                  placeholder="-"
+                />
+              </div>
             </div>
 
             <div className="modal-actions">
