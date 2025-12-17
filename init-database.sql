@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
   password VARCHAR(255) NOT NULL,
   rol ENUM('admin', 'user') DEFAULT 'user',
   activo BOOLEAN DEFAULT TRUE,
+  datos_anteriores LONGTEXT DEFAULT NULL,
   fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_actualizacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_email (email),

@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 class Usuario {
   static async findAll() {
     return new Promise((resolve, reject) => {
-      db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id ORDER BY u.fecha_creacion DESC', (err, results) => {
+      db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.datos_anteriores, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id ORDER BY u.fecha_creacion DESC', (err, results) => {
         if (err) reject(err);
         else resolve(results);
       });
@@ -13,7 +13,7 @@ class Usuario {
 
   static async findById(id) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id WHERE u.id = ?', [id], (err, results) => {
+      db.query('SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.datos_anteriores, u.fecha_creacion, u.fecha_actualizacion, u.subsecretaria_id, s.nombre as subsecretaria_nombre FROM usuarios u LEFT JOIN subsecretarias s ON u.subsecretaria_id = s.id WHERE u.id = ?', [id], (err, results) => {
         if (err) reject(err);
         else resolve(results[0]);
       });
@@ -63,9 +63,34 @@ class Usuario {
   static async update(id, usuarioData) {
     return new Promise(async (resolve, reject) => {
       try {
+        // Obtener datos actuales para el historial
+        const currentUser = await this.findById(id);
+        
+        if (!currentUser) {
+          return resolve(null);
+        }
+
+        // Obtener la contraseña actual que no viene en findById
+        const currentPassword = await new Promise((res, rej) => {
+           db.query('SELECT password FROM usuarios WHERE id = ?', [id], (err, results) => {
+             if (err) rej(err);
+             else res(results[0]?.password);
+           });
+        });
+
+        const previousData = {
+          nombre: currentUser.nombre,
+          email: currentUser.email,
+          rol: currentUser.rol,
+          subsecretaria_id: currentUser.subsecretaria_id,
+          activo: currentUser.activo,
+          password: currentPassword, // Guardar el hash de la contraseña
+          fecha_guardado: new Date()
+        };
+
         const { nombre, email, password, rol, subsecretaria_id } = usuarioData;
-        let query = 'UPDATE usuarios SET nombre = ?, email = ?, rol = ?, subsecretaria_id = ?';
-        let params = [nombre, email, rol, subsecretaria_id];
+        let query = 'UPDATE usuarios SET nombre = ?, email = ?, rol = ?, subsecretaria_id = ?, datos_anteriores = ?';
+        let params = [nombre, email, rol, subsecretaria_id, JSON.stringify(previousData)];
 
         // Si se proporciona una nueva contraseña, hacer hash
         if (password) {

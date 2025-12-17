@@ -90,38 +90,61 @@ class Vecino {
   }
 
   static async update(id, vecinoData) {
-    return new Promise((resolve, reject) => {
-      const {
-        nombre, apellido, email, telefono, documento,
-        fecha_nacimiento, calle, altura, piso, departamento,
-        entre_calle_1, entre_calle_2, barrio_id, localidad_id,
-        otra_localidad, celular, genero_id, estudio_id,
-        ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
-      } = vecinoData;
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Obtener datos actuales para el historial
+        const currentVecino = await this.findById(id);
 
-      const query = `
-        UPDATE vecinos SET
-          nombre = ?, apellido = ?, email = ?, telefono = ?, documento = ?,
-          fecha_nacimiento = ?, calle = ?, altura = ?, piso = ?, departamento = ?,
-          entre_calle_1 = ?, entre_calle_2 = ?, barrio_id = ?, localidad_id = ?,
-          otra_localidad = ?, celular = ?, genero_id = ?, estudio_id = ?,
-          ocupacion = ?, nacionalidad = ?, estado_civil_id = ?, barrio_especificacion = ?
-        WHERE id = ?
-      `;
+        if (!currentVecino) {
+          return resolve(null);
+        }
 
-      const values = [
-        nombre, apellido, email || null, telefono || null, documento,
-        fecha_nacimiento || null, calle || null, altura || null, piso || null, departamento || null,
-        entre_calle_1 || null, entre_calle_2 || null, barrio_id || null, localidad_id || null,
-        otra_localidad || null, celular || null, genero_id || null, estudio_id || null,
-        ocupacion || null, nacionalidad || null, estado_civil_id || null, barrio_especificacion || null,
-        id
-      ];
+        const previousData = {
+          ...currentVecino,
+          fecha_guardado: new Date()
+        };
 
-      db.query(query, values, (err, results) => {
-        if (err) reject(err);
-        else resolve({ id, ...vecinoData });
-      });
+        // Eliminar campos que no queremos duplicar o que son redundantes en el historial
+        delete previousData.datos_anteriores; // No guardar el historial dentro del historial
+        delete previousData.fecha_creacion;
+        delete previousData.fecha_actualizacion;
+
+        const {
+          nombre, apellido, email, telefono, documento,
+          fecha_nacimiento, calle, altura, piso, departamento,
+          entre_calle_1, entre_calle_2, barrio_id, localidad_id,
+          otra_localidad, celular, genero_id, estudio_id,
+          ocupacion, nacionalidad, estado_civil_id, barrio_especificacion
+        } = vecinoData;
+
+        const query = `
+          UPDATE vecinos SET
+            nombre = ?, apellido = ?, email = ?, telefono = ?, documento = ?,
+            fecha_nacimiento = ?, calle = ?, altura = ?, piso = ?, departamento = ?,
+            entre_calle_1 = ?, entre_calle_2 = ?, barrio_id = ?, localidad_id = ?,
+            otra_localidad = ?, celular = ?, genero_id = ?, estudio_id = ?,
+            ocupacion = ?, nacionalidad = ?, estado_civil_id = ?, barrio_especificacion = ?,
+            datos_anteriores = ?
+          WHERE id = ?
+        `;
+
+        const values = [
+          nombre, apellido, email || null, telefono || null, documento,
+          fecha_nacimiento || null, calle || null, altura || null, piso || null, departamento || null,
+          entre_calle_1 || null, entre_calle_2 || null, barrio_id || null, localidad_id || null,
+          otra_localidad || null, celular || null, genero_id || null, estudio_id || null,
+          ocupacion || null, nacionalidad || null, estado_civil_id || null, barrio_especificacion || null,
+          JSON.stringify(previousData),
+          id
+        ];
+
+        db.query(query, values, (err, results) => {
+          if (err) reject(err);
+          else resolve({ id, ...vecinoData });
+        });
+      } catch (error) {
+        reject(error);
+      }
     });
   }
 

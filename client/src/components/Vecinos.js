@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaInfoCircle, FaBan, FaCheck, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaInfoCircle, FaBan, FaCheck, FaSearch, FaTimes, FaHistory } from 'react-icons/fa';
 import { vecinosAPI } from '../services/api';
+import Modal from './Modal';
 import VecinoForm from './VecinoForm';
 import VecinoDetalle from './VecinoDetalle';
 import { useUser } from '../contexts/UserContext';
@@ -18,6 +19,8 @@ const Vecinos = () => {
   const [detalleLoading, setDetalleLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [alert, setAlert] = useState(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyVecino, setHistoryVecino] = useState(null);
 
   useEffect(() => {
     loadVecinos();
@@ -97,6 +100,11 @@ const Vecinos = () => {
     }
   };
 
+  const handleViewHistory = (vecino) => {
+    setHistoryVecino(vecino);
+    setShowHistoryModal(true);
+  };
+
   const handleSave = () => {
     setShowModal(false);
     loadVecinos();
@@ -105,6 +113,18 @@ const Vecinos = () => {
   const showAlert = (message, type) => {
     setAlert({ message, type });
     setTimeout(() => setAlert(null), 3000);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (loading) {
@@ -192,6 +212,14 @@ const Vecinos = () => {
                       {canManage ? (
                         <div className="action-buttons">
                           <button
+                            className="btn btn-info"
+                            style={{ marginRight: '5px' }}
+                            onClick={() => handleViewHistory(vecino)}
+                            title="Ver historial"
+                          >
+                            <FaHistory />
+                          </button>
+                          <button
                             className="btn btn-secondary"
                             onClick={() => handleEdit(vecino)}
                             title="Editar"
@@ -222,14 +250,24 @@ const Vecinos = () => {
                           </button>
                         </div>
                       ) : (
-                        <button
-                          className="btn-detalle"
-                          onClick={() => handleDetalle(vecino.id)}
-                          disabled={detalleLoading && detalleVecino?.id === vecino.id}
-                          title="Ver detalle"
-                        >
-                          <FaInfoCircle /> {detalleLoading && detalleVecino?.id === vecino.id ? 'Cargando...' : ''}
-                        </button>
+                        <div className="action-buttons">
+                            <button
+                                className="btn btn-info"
+                                style={{ marginRight: '5px' }}
+                                onClick={() => handleViewHistory(vecino)}
+                                title="Ver historial"
+                            >
+                                <FaHistory />
+                            </button>
+                            <button
+                                className="btn-detalle"
+                                onClick={() => handleDetalle(vecino.id)}
+                                disabled={detalleLoading && detalleVecino?.id === vecino.id}
+                                title="Ver detalle"
+                            >
+                                <FaInfoCircle /> {detalleLoading && detalleVecino?.id === vecino.id ? 'Cargando...' : ''}
+                            </button>
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -239,6 +277,60 @@ const Vecinos = () => {
           </table>
         </div>
       </div>
+
+      {/* Modal Historial */}
+      <Modal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        title="Historial de Cambios (Estado Anterior)"
+      >
+        {historyVecino ? (
+            historyVecino.datos_anteriores ? (
+                (() => {
+                    let datos;
+                    try {
+                        datos = typeof historyVecino.datos_anteriores === 'string'
+                            ? JSON.parse(historyVecino.datos_anteriores)
+                            : historyVecino.datos_anteriores;
+                    } catch (e) {
+                        return <p>Error al leer los datos históricos.</p>;
+                    }
+
+                    return (
+                        <div className="historial-content">
+                            <div className="alert alert-info">
+                                <p><strong>Fecha del cambio:</strong> {formatDate(datos.fecha_guardado)}</p>
+                            </div>
+                            <table className="table table-bordered">
+                                <tbody>
+                                    <tr><th>Nombre</th><td>{datos.nombre}</td></tr>
+                                    <tr><th>Apellido</th><td>{datos.apellido}</td></tr>
+                                    <tr><th>Documento</th><td>{datos.documento}</td></tr>
+                                    <tr><th>Email</th><td>{datos.email || '-'}</td></tr>
+                                    <tr><th>Teléfono</th><td>{datos.telefono || '-'}</td></tr>
+                                    <tr><th>Celular</th><td>{datos.celular || '-'}</td></tr>
+                                    <tr><th>Fecha Nac.</th><td>{datos.fecha_nacimiento ? formatDate(datos.fecha_nacimiento).split(',')[0] : '-'}</td></tr>
+                                    <tr><th>Dirección</th><td>{datos.calle} {datos.altura} {datos.piso} {datos.departamento}</td></tr>
+                                    <tr><th>Barrio Especificación</th><td>{datos.barrio_especificacion || '-'}</td></tr>
+                                    <tr><th>Ocupación</th><td>{datos.ocupacion || '-'}</td></tr>
+                                    <tr><th>Nacionalidad</th><td>{datos.nacionalidad || '-'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    );
+                })()
+            ) : (
+                <p className="text-center p-3">No hay historial de cambios disponible para este vecino.</p>
+            )
+        ) : (
+            <p>Cargando...</p>
+        )}
+        <div className="modal-actions">
+            <button type="button" className="btn btn-primary" onClick={() => setShowHistoryModal(false)}>
+                Cerrar
+            </button>
+        </div>
+      </Modal>
 
       {showModal && canManage && (
         <VecinoForm

@@ -8,7 +8,8 @@ import {
   FaToggleOff,
   FaSearch,
   FaEye,
-  FaEyeSlash
+  FaEyeSlash,
+  FaHistory
 } from 'react-icons/fa';
 import { authAPI } from '../services/api';
 import Modal from './Modal';
@@ -23,6 +24,9 @@ const Usuarios = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyUser, setHistoryUser] = useState(null);
+  const [showHistoryPassword, setShowHistoryPassword] = useState(false);
   const [formData, setFormData] = useState({
     nombre: '',
     email: '',
@@ -183,8 +187,15 @@ const Usuarios = () => {
     }
   };
 
+  const handleViewHistory = (usuario) => {
+    setHistoryUser(usuario);
+    setShowHistoryPassword(false);
+    setShowHistoryModal(true);
+  };
+
   // Formatear fecha
   const formatDate = (dateString) => {
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return date.toLocaleDateString('es-ES', {
       year: 'numeric',
@@ -298,6 +309,14 @@ const Usuarios = () => {
                       {isAdmin ? (
                         <div className="action-buttons">
                           <button
+                            className="btn btn-sm btn-info"
+                            onClick={() => handleViewHistory(usuario)}
+                            title="Ver historial"
+                            style={{ marginRight: '5px' }}
+                          >
+                            <FaHistory />
+                          </button>
+                          <button
                             className="btn btn-sm btn-secondary"
                             onClick={() => handleEditUser(usuario)}
                             title="Editar usuario"
@@ -320,7 +339,15 @@ const Usuarios = () => {
                           </button>
                         </div>
                       ) : (
-                        <span className="text-muted">Solo lectura</span>
+                         <div className="action-buttons">
+                            <button
+                                className="btn btn-sm btn-info"
+                                onClick={() => handleViewHistory(usuario)}
+                                title="Ver historial"
+                            >
+                                <FaHistory />
+                            </button>
+                         </div>
                       )}
                     </td>
                   </tr>
@@ -330,6 +357,113 @@ const Usuarios = () => {
           </table>
         </div>
       </div>
+
+      {/* Modal Historial */}
+      <Modal
+        isOpen={showHistoryModal}
+        onClose={() => setShowHistoryModal(false)}
+        title="Historial de Cambios (Estado Anterior)"
+      >
+        {historyUser ? (
+            historyUser.datos_anteriores ? (
+                (() => {
+                    let datos;
+                    try {
+                        datos = typeof historyUser.datos_anteriores === 'string'
+                            ? JSON.parse(historyUser.datos_anteriores)
+                            : historyUser.datos_anteriores;
+                    } catch (e) {
+                        return <p>Error al leer los datos históricos.</p>;
+                    }
+                    
+                    // Buscar nombre de subsecretaria si existe
+                    const subNombre = datos.subsecretaria_id 
+                        ? subsecretarias.find(s => s.id === datos.subsecretaria_id)?.nombre 
+                        : null;
+
+                    return (
+                        <div className="historial-content">
+                            <div className="alert alert-info">
+                                <p><strong>Fecha del cambio:</strong> {formatDate(datos.fecha_guardado)}</p>
+                            </div>
+                            <table className="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <td>{datos.nombre}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Email</th>
+                                        <td>{datos.email}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Rol</th>
+                                        <td>
+                                            <span className={`badge ${
+                                                datos.rol === 'admin' ? 'badge-danger' :
+                                                datos.rol === 'visitante' ? 'badge-warning' : 
+                                                datos.rol === 'subsecretaria' ? 'badge-info' : 'badge-secondary'
+                                            }`}>
+                                                {datos.rol}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Contraseña Anterior</th>
+                                        <td>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <span style={{ marginRight: '10px', fontFamily: 'monospace' }}>
+                                                    {showHistoryPassword ? (
+                                                        datos.password || 'No registrada'
+                                                    ) : (
+                                                        '●●●●●●●●'
+                                                    )}
+                                                </span>
+                                                {isAdmin && (
+                                                    <button 
+                                                        type="button" 
+                                                        className="btn btn-sm btn-light" 
+                                                        onClick={() => setShowHistoryPassword(!showHistoryPassword)}
+                                                        title={showHistoryPassword ? "Ocultar" : "Mostrar"}
+                                                    >
+                                                        {showHistoryPassword ? <FaEyeSlash /> : <FaEye />}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {showHistoryPassword && datos.password && (
+                                                <small className="text-muted d-block mt-1">
+                                                    (Hash encriptado)
+                                                </small>
+                                            )}
+                                        </td>
+                                    </tr>
+                                    {datos.rol === 'subsecretaria' && (
+                                        <tr>
+                                            <th>Subsecretaría</th>
+                                            <td>{subNombre || 'No encontrada (ID: ' + datos.subsecretaria_id + ')'}</td>
+                                        </tr>
+                                    )}
+                                    <tr>
+                                        <th>Estado</th>
+                                        <td>{datos.activo ? 'Activo' : 'Inactivo'}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    );
+                })()
+            ) : (
+                <p className="text-center p-3">No hay historial de cambios disponible para este usuario.</p>
+            )
+        ) : (
+            <p>Cargando...</p>
+        )}
+        <div className="modal-actions">
+            <button type="button" className="btn btn-primary" onClick={() => setShowHistoryModal(false)}>
+                Cerrar
+            </button>
+        </div>
+      </Modal>
 
       {/* Modal para crear/editar usuario - solo visible para admins */}
       {isAdmin && (
