@@ -1,19 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   FaUsers, 
   FaCalendarAlt, 
   FaClipboardList, 
   FaClock, 
-  FaUserPlus,
-  FaCalendarPlus,
-  FaSearch,
-  FaCalendarCheck,
-  FaEye
+  FaUserPlus, 
+  FaCalendarPlus, 
+  FaSearch, 
+  FaArrowRight, 
+  FaEye, 
+  FaExternalLinkAlt, 
+  FaTimes 
 } from 'react-icons/fa';
-import { dashboardAPI, eventosAPI } from '../services/api';
+import { dashboardAPI, eventosAPI, vecinosAPI, registrosAPI } from '../services/api';
 import AttendeesModal from './AttendeesModal';
+import { Link } from 'react-router-dom';
 import './Dashboard.css';
+
+const DetailsModal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>{title}</h3>
+          <button className="close-btn" onClick={onClose}><FaTimes /></button>
+        </div>
+        <div className="modal-body">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -23,12 +42,20 @@ const Dashboard = () => {
     proximosEventos: []
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  
+  // Modals state
   const [attendeesModal, setAttendeesModal] = useState({
     show: false,
     loading: false,
     attendees: [],
     eventName: ''
+  });
+
+  const [detailsModal, setDetailsModal] = useState({
+    show: false,
+    type: '', // 'vecinos', 'eventos', 'registros'
+    data: [],
+    loading: false
   });
 
   useEffect(() => {
@@ -38,7 +65,6 @@ const Dashboard = () => {
         setStats(response.data);
       } catch (err) {
         console.error('Error fetching dashboard stats:', err);
-        setError('No se pudieron cargar las estadísticas.');
       } finally {
         setLoading(false);
       }
@@ -46,6 +72,28 @@ const Dashboard = () => {
 
     fetchStats();
   }, []);
+
+  const handleCardClick = async (type) => {
+    setDetailsModal({ show: true, type, data: [], loading: true });
+    try {
+      let data = [];
+      if (type === 'vecinos') {
+        const res = await vecinosAPI.getAll();
+        data = res.data.slice(0, 10); 
+      } else if (type === 'eventos') {
+        const res = await eventosAPI.getActive();
+        data = res.data;
+      } else if (type === 'registros') {
+        const res = await registrosAPI.getAll();
+        const today = new Date().toISOString().split('T')[0];
+        data = res.data.filter(r => r.fecha_registro && r.fecha_registro.startsWith(today));
+      }
+      setDetailsModal(prev => ({ ...prev, data, loading: false }));
+    } catch (error) {
+      console.error(`Error loading details for ${type}:`, error);
+      setDetailsModal(prev => ({ ...prev, loading: false }));
+    }
+  };
 
   const handleViewAttendees = async (evento) => {
     setAttendeesModal({
@@ -71,23 +119,6 @@ const Dashboard = () => {
     }
   };
 
-  const closeAttendeesModal = () => {
-    setAttendeesModal({ ...attendeesModal, show: false });
-  };
-
-  if (loading) return (
-    <div className="dashboard-loading">
-      <div className="spinner"></div>
-      <p>Cargando información del sistema...</p>
-    </div>
-  );
-  
-  if (error) return (
-    <div className="alert alert-danger fade-in">
-      <div className="alert-content">{error}</div>
-    </div>
-  );
-
   const formatDate = (dateString) => {
     if (!dateString) return { day: '--', month: '---' };
     const date = new Date(dateString);
@@ -98,90 +129,194 @@ const Dashboard = () => {
     };
   };
 
+  const today = new Date().toLocaleDateString('es-ES', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
+
+  if (loading) {
+    return (
+      <div className="dashboard-container" style={{display: 'flex', justifyContent: 'center', paddingTop: '100px'}}>
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  // Render content for Details Modal
+  const renderDetailsContent = () => {
+    if (detailsModal.loading) {
+      return <div className="text-center p-4">Cargando detalles...</div>;
+    }
+
+    if (!detailsModal.data || detailsModal.data.length === 0) {
+       return <div className="alert alert-info">No hay datos disponibles para mostrar.</div>;
+    }
+
+    if (detailsModal.type === 'vecinos') {
+      return (
+        <div className="table-responsive">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Documento</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detailsModal.data.map(v => (
+                <tr key={v.id || v.id_vecino}>
+                  <td>{v.nombre} {v.apellido}</td>
+                  <td>{v.documento}</td>
+                  <td>
+                    <span className={`badge ${v.activo ? 'badge-success' : 'badge-danger'}`}>
+                      {v.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="text-center mt-3">
+            <small className="text-muted">Mostrando últimos registros</small>
+          </div>
+        </div>
+      );
+    }
+
+    if (detailsModal.type === 'eventos') {
+      return (
+        <div className="table-responsive">
+          <table className="table">
+             <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Fecha</th>
+                <th>Hora</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detailsModal.data.map(e => (
+                <tr key={e.id}>
+                  <td>{e.nombre}</td>
+                  <td>{new Date(e.fecha_evento).toLocaleDateString('es-ES')}</td>
+                  <td>{e.hora_evento?.substring(0, 5)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    if (detailsModal.type === 'registros') {
+       return (
+        <div className="table-responsive">
+          <table className="table">
+             <thead>
+              <tr>
+                <th>Vecino</th>
+                <th>Evento</th>
+                <th>Hora</th>
+              </tr>
+            </thead>
+            <tbody>
+              {detailsModal.data.map(r => (
+                <tr key={r.id_registro}>
+                  <td>{r.vecino_nombre || r.vecino?.nombre} {r.vecino_apellido || r.vecino?.apellido}</td>
+                  <td>{r.evento_nombre || r.evento?.nombre}</td>
+                  <td>{new Date(r.fecha_registro).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="dashboard-container fade-in">
-      <div className="dashboard-header">
-        <div>
-          <h1 className="dashboard-title">Panel de Control</h1>
-          <p className="dashboard-subtitle">
-            Bienvenido al Sistema de Gestión de Eventos del Municipio de Tigre
-          </p>
+      
+      {/* Hero Section */}
+      <div className="dashboard-hero">
+        <div className="hero-content">
+          <h1 className="hero-title">Panel de Control</h1>
+          <p className="hero-subtitle">Sistema de Gestión Integral Tigre Municipio</p>
         </div>
-        <div className="current-date">
-          {new Date().toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+        <div className="hero-date-badge">
+          <FaCalendarAlt /> {today}
         </div>
       </div>
 
+      {/* Stats Grid */}
       <div className="stats-grid">
-        <div className="stat-card fade-in" style={{ animationDelay: '0.1s' }}>
-          <div className="stat-icon-wrapper vecinos">
-            <FaUsers />
-          </div>
-          <div className="stat-content">
-            <h3>Total Vecinos</h3>
+        <div className="stat-card vecinos clickable-card" onClick={() => handleCardClick('vecinos')}>
+          <div className="stat-icon"><FaUsers /></div>
+          <div className="stat-info">
             <div className="stat-value">{stats.totalVecinos}</div>
-            <div className="stat-label">Registrados en el sistema</div>
+            <div className="stat-label">Vecinos Registrados</div>
           </div>
+          <div className="stat-action-icon"><FaEye /></div>
         </div>
 
-        <div className="stat-card fade-in" style={{ animationDelay: '0.2s' }}>
-          <div className="stat-icon-wrapper eventos">
-            <FaCalendarCheck />
-          </div>
-          <div className="stat-content">
-            <h3>Eventos Activos</h3>
+        <div className="stat-card eventos clickable-card" onClick={() => handleCardClick('eventos')}>
+          <div className="stat-icon"><FaCalendarAlt /></div>
+          <div className="stat-info">
             <div className="stat-value">{stats.totalEventos}</div>
-            <div className="stat-label">Disponibles para inscripción</div>
+            <div className="stat-label">Eventos Disponibles</div>
           </div>
+          <div className="stat-action-icon"><FaEye /></div>
         </div>
 
-        <div className="stat-card fade-in" style={{ animationDelay: '0.3s' }}>
-          <div className="stat-icon-wrapper registros">
-            <FaClipboardList />
-          </div>
-          <div className="stat-content">
-            <h3>Registros Hoy</h3>
+        <div className="stat-card registros clickable-card" onClick={() => handleCardClick('registros')}>
+          <div className="stat-icon"><FaClipboardList /></div>
+           <div className="stat-info">
             <div className="stat-value">{stats.registrosHoy}</div>
-            <div className="stat-label">Inscripciones realizadas hoy</div>
+            <div className="stat-label">Inscripciones Hoy</div>
           </div>
+          <div className="stat-action-icon"><FaEye /></div>
         </div>
       </div>
 
-      <div className="content-grid">
-        <div className="upcoming-events-section fade-in" style={{ animationDelay: '0.4s' }}>
+      {/* Main Content Grid */}
+      <div className="dashboard-content">
+        
+        {/* Upcoming Events List */}
+        <div className="events-section">
           <div className="section-header">
-            <h2><FaCalendarAlt /> Próximos Eventos</h2>
-            <Link to="/eventos" className="view-all-link">Ver todos</Link>
+            <h2>Próximos Eventos</h2>
+            <Link to="/eventos" className="btn btn-sm btn-secondary">
+              Ver todos <FaArrowRight style={{marginLeft: 8}} />
+            </Link>
           </div>
-          
+
           {stats.proximosEventos.length > 0 ? (
-            <div className="upcoming-events-list">
+            <div className="events-list">
               {stats.proximosEventos.map((evento) => {
                 const dateObj = formatDate(evento.fecha_evento);
                 return (
-                  <div key={evento.id} className="upcoming-event-item">
-                    <div className="event-date-box">
-                      <div className="event-day">{dateObj.day}</div>
-                      <div className="event-month">{dateObj.month}</div>
+                  <div key={evento.id} className="event-item">
+                    <div className="event-date-badge">
+                      <div className="event-date-day">{dateObj.day}</div>
+                      <div className="event-date-month">{dateObj.month}</div>
                     </div>
-                    <div className="event-info">
-                      <span className="event-title">{evento.nombre}</span>
+                    <div className="event-details">
+                      <span className="event-name">{evento.nombre}</span>
                       <div className="event-meta">
-                        <span className="meta-item"><FaClock /> {evento.hora_evento?.substring(0, 5) || 'N/A'}</span>
-                        <span className="meta-separator">•</span>
-                        <span className="meta-item">{dateObj.full}</span>
+                        <span className="meta-icon"><FaClock /> {evento.hora_evento?.substring(0, 5) || 'N/A'}</span>
+                        <span className="meta-icon"><FaUsers /> {evento.inscritos} inscritos</span>
                       </div>
                     </div>
-                    <div className="event-actions-col">
-                      <div className="event-stats-badge">
-                        {evento.inscritos} inscriptos
-                      </div>
+                    <div className="event-action">
                       <button 
-                        className="btn-text-primary" 
+                        className="btn btn-sm btn-secondary"
                         onClick={() => handleViewAttendees(evento)}
-                        title="Ver inscriptos"
+                        title="Ver lista de inscriptos"
                       >
-                        <FaEye /> Ver lista
+                        <FaEye />
                       </button>
                     </div>
                   </div>
@@ -189,49 +324,45 @@ const Dashboard = () => {
               })}
             </div>
           ) : (
-            <div className="empty-state">
-              <div className="empty-icon"><FaCalendarAlt /></div>
-              <h3>Sin eventos próximos</h3>
-              <p>No hay eventos programados próximamente.</p>
-              <Link to="/eventos" className="btn btn-primary btn-sm mt-3">Crear Evento</Link>
+            <div className="empty-events">
+              <FaCalendarAlt style={{fontSize: 40, opacity: 0.3, marginBottom: 16}} />
+              <p>No hay eventos próximos programados.</p>
+              <Link to="/eventos" className="btn btn-primary btn-sm mt-3">Crear uno nuevo</Link>
             </div>
           )}
         </div>
 
-        <div className="quick-actions-section fade-in" style={{ animationDelay: '0.5s' }}>
-          <h2>Accesos Rápidos</h2>
-          <div className="quick-actions-grid">
-            <Link to="/vecinos" className="quick-action-btn">
-              <div className="quick-action-icon">
-                <FaUserPlus />
-              </div>
-              <div className="quick-action-info">
+        {/* Quick Actions Panel */}
+        <div className="quick-actions-panel">
+          <div className="quick-actions-card">
+            <h3 style={{marginBottom: 20}}>Acceso Rápido</h3>
+            
+            <Link to="/vecinos" className="quick-btn">
+              <div className="quick-btn-icon"><FaUserPlus /></div>
+              <div className="quick-btn-text">
                 <h3>Nuevo Vecino</h3>
-                <p>Registrar un nuevo vecino</p>
+                <p>Alta de residente</p>
               </div>
             </Link>
 
-            <Link to="/eventos" className="quick-action-btn">
-              <div className="quick-action-icon">
-                <FaCalendarPlus />
-              </div>
-              <div className="quick-action-info">
-                <h3>Nuevo Evento</h3>
-                <p>Crear un nuevo evento</p>
+            <Link to="/eventos" className="quick-btn">
+              <div className="quick-btn-icon"><FaCalendarPlus /></div>
+              <div className="quick-btn-text">
+                <h3>Crear Evento</h3>
+                <p>Nueva actividad</p>
               </div>
             </Link>
 
-            <Link to="/registro" className="quick-action-btn">
-              <div className="quick-action-icon">
-                <FaSearch />
-              </div>
-              <div className="quick-action-info">
-                <h3>Inscribir</h3>
-                <p>Inscribir vecino a evento</p>
+            <Link to="/registro" className="quick-btn">
+              <div className="quick-btn-icon"><FaSearch /></div>
+              <div className="quick-btn-text">
+                <h3>Inscripciones</h3>
+                <p>Gestionar registros</p>
               </div>
             </Link>
           </div>
         </div>
+
       </div>
 
       {attendeesModal.show && (
@@ -239,9 +370,23 @@ const Dashboard = () => {
           eventName={attendeesModal.eventName}
           attendees={attendeesModal.attendees}
           loading={attendeesModal.loading}
-          onClose={closeAttendeesModal}
+          onClose={() => setAttendeesModal({ ...attendeesModal, show: false })}
         />
       )}
+
+      {/* Generic Details Modal */}
+      <DetailsModal 
+        isOpen={detailsModal.show} 
+        onClose={() => setDetailsModal({ ...detailsModal, show: false })}
+        title={
+          detailsModal.type === 'vecinos' ? 'Detalle de Vecinos' :
+          detailsModal.type === 'eventos' ? 'Eventos Activos' :
+          'Inscripciones de Hoy'
+        }
+      >
+        {renderDetailsContent()}
+      </DetailsModal>
+
     </div>
   );
 };
