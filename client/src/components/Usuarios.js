@@ -309,29 +309,28 @@ const Usuarios = () => {
                       {isAdmin ? (
                         <div className="action-buttons">
                           <button
-                            className="btn btn-sm btn-info"
+                            className="btn-icon btn-info"
                             onClick={() => handleViewHistory(usuario)}
                             title="Ver historial"
-                            style={{ marginRight: '5px' }}
                           >
                             <FaHistory />
                           </button>
                           <button
-                            className="btn btn-sm btn-secondary"
+                            className="btn-icon btn-secondary"
                             onClick={() => handleEditUser(usuario)}
                             title="Editar usuario"
                           >
                             <FaEdit />
                           </button>
                           <button
-                            className={`btn btn-sm ${usuario.activo ? 'btn-warning' : 'btn-success'}`}
+                            className={`btn-icon ${usuario.activo ? 'btn-warning' : 'btn-success'}`}
                             onClick={() => handleToggleActivo(usuario)}
                             title={usuario.activo ? 'Desactivar usuario' : 'Activar usuario'}
                           >
                             {usuario.activo ? <FaToggleOff /> : <FaToggleOn />}
                           </button>
                           <button
-                            className="btn btn-sm btn-danger"
+                            className="btn-icon btn-danger"
                             onClick={() => handleDeleteUser(usuario)}
                             title="Eliminar usuario"
                           >
@@ -341,7 +340,7 @@ const Usuarios = () => {
                       ) : (
                          <div className="action-buttons">
                             <button
-                                className="btn btn-sm btn-info"
+                                className="btn-icon btn-info"
                                 onClick={() => handleViewHistory(usuario)}
                                 title="Ver historial"
                             >

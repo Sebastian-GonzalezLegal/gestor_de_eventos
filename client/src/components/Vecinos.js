@@ -255,37 +255,36 @@ const Vecinos = () => {
                       {canManage ? (
                         <div className="action-buttons">
                           <button
-                            className="btn btn-info"
-                            style={{ marginRight: '5px' }}
+                            className="btn-icon btn-secondary"
                             onClick={() => handleViewHistory(vecino)}
                             title="Ver historial"
                           >
                             <FaHistory />
                           </button>
                           <button
-                            className="btn btn-secondary"
+                            className="btn-icon btn-primary"
                             onClick={() => handleEdit(vecino)}
                             title="Editar"
                           >
                             <FaEdit />
                           </button>
                           <button
-                            className="btn-detalle"
+                            className="btn-icon btn-info"
                             onClick={() => handleDetalle(vecino.id)}
                             disabled={detalleLoading && detalleVecino?.id === vecino.id}
                             title="Ver detalle"
                           >
-                            <FaInfoCircle /> {detalleLoading && detalleVecino?.id === vecino.id ? 'Cargando...' : ''}
+                            <FaInfoCircle />
                           </button>
                           <button
-                            className={`btn ${vecino.activo ? 'btn-warning' : 'btn-success'}`}
+                            className={`btn-icon ${vecino.activo ? 'btn-warning' : 'btn-success'}`}
                             onClick={() => handleToggleActivo(vecino.id)}
                             title={vecino.activo ? 'Inhabilitar' : 'Habilitar'}
                           >
-                            {vecino.activo ? <><FaBan /></> : <><FaCheck /></>}
+                            {vecino.activo ? <FaBan /> : <FaCheck />}
                           </button>
                           <button
-                            className="btn btn-danger"
+                            className="btn-icon btn-danger"
                             onClick={() => handleDelete(vecino.id)}
                             title="Eliminar"
                           >
@@ -295,20 +294,19 @@ const Vecinos = () => {
                       ) : (
                         <div className="action-buttons">
                             <button
-                                className="btn btn-info"
-                                style={{ marginRight: '5px' }}
+                                className="btn-icon btn-secondary"
                                 onClick={() => handleViewHistory(vecino)}
                                 title="Ver historial"
                             >
                                 <FaHistory />
                             </button>
                             <button
-                                className="btn-detalle"
+                                className="btn-icon btn-info"
                                 onClick={() => handleDetalle(vecino.id)}
                                 disabled={detalleLoading && detalleVecino?.id === vecino.id}
                                 title="Ver detalle"
                             >
-                                <FaInfoCircle /> {detalleLoading && detalleVecino?.id === vecino.id ? 'Cargando...' : ''}
+                                <FaInfoCircle />
                             </button>
                         </div>
                       )}

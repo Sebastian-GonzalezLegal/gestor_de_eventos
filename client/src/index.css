@@ -435,6 +435,102 @@ body {
   margin-right: 12px;
 }
 
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.btn-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-icon.btn-primary {
+  color: var(--primary);
+  background: var(--primary-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-primary:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-icon.btn-secondary {
+  color: var(--text-secondary);
+  background: #f1f5f9;
+  border-color: transparent;
+}
+.btn-icon.btn-secondary:hover {
+  background: var(--text-secondary);
+  color: white;
+}
+
+.btn-icon.btn-info {
+  color: var(--info);
+  background: var(--info-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-info:hover {
+  background: var(--info);
+  color: white;
+}
+
+.btn-icon.btn-success {
+  color: #059669;
+  background: var(--success-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-success:hover {
+  background: #059669;
+  color: white;
+}
+
+.btn-icon.btn-warning {
+  color: #d97706;
+  background: var(--warning-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-warning:hover {
+  background: #d97706;
+  color: white;
+}
+
+.btn-icon.btn-danger {
+  color: var(--danger);
+  background: var(--danger-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-danger:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .modal-content {

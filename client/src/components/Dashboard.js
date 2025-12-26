@@ -223,13 +223,20 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {detailsModal.data.map(r => (
-                <tr key={r.id_registro}>
-                  <td>{r.vecino_nombre || r.vecino?.nombre} {r.vecino_apellido || r.vecino?.apellido}</td>
-                  <td>{r.evento_nombre || r.evento?.nombre}</td>
-                  <td>{new Date(r.fecha_registro).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</td>
-                </tr>
-              ))}
+              {detailsModal.data.map(r => {
+                // Handle different data structures for neighbor name
+                const nombre = r.vecino_nombre || r.vecino?.nombre || r.nombre || 'Sin nombre';
+                const apellido = r.vecino_apellido || r.vecino?.apellido || r.apellido || '';
+                const evento = r.evento_nombre || r.evento?.nombre || r.evento_titulo || 'Evento';
+                
+                return (
+                  <tr key={r.id_registro || r.id}>
+                    <td>{nombre} {apellido}</td>
+                    <td>{evento}</td>
+                    <td>{new Date(r.fecha_registro || r.created_at).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
