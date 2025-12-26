@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaList, FaIdCard, FaCalendarAlt, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaList, FaIdCard, FaCalendarAlt, FaTimes, FaSearch } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
@@ -9,12 +9,16 @@ const Tipos = () => {
   const { isAdmin, isSubsecretaria } = useUser();
   const canManage = isAdmin || isSubsecretaria;
   const navigate = useNavigate();
+  const [allTipos, setAllTipos] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTipo, setEditingTipo] = useState(null);
   const [formData, setFormData] = useState({ nombre: '' });
   const [alert, setAlert] = useState(null);
+  
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadTipos();
@@ -24,6 +28,7 @@ const Tipos = () => {
     try {
       setLoading(true);
       const response = await tiposAPI.getAll();
+      setAllTipos(response.data);
       setTipos(response.data);
     } catch (error) {
       showAlert('Error al cargar tipos', 'error');
@@ -31,6 +36,15 @@ const Tipos = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let result = allTipos;
+    if (searchTerm) {
+        const lower = searchTerm.toLowerCase();
+        result = result.filter(t => t.nombre.toLowerCase().includes(lower));
+    }
+    setTipos(result);
+  }, [allTipos, searchTerm]);
 
   const showAlert = (message, type = 'info') => {
     setAlert({ message, type });
@@ -120,9 +134,34 @@ const Tipos = () => {
           </div>
         )}
 
+        <div className="filters-container">
+            <div className="search-box">
+                <div className="search-input-container">
+                    <FaSearch className="search-icon" />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar tipo..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                     {searchTerm && (
+                        <button
+                          type="button"
+                          className="clear-search"
+                          onClick={() => setSearchTerm('')}
+                          title="Limpiar búsqueda"
+                        >
+                          <FaTimes />
+                        </button>
+                      )}
+                </div>
+            </div>
+        </div>
+
         <div className="tipos-grid">
           {tipos.length === 0 ? (
-            <div className="no-data">No hay tipos registrados</div>
+            <div className="no-data">No hay tipos que coincidan con la búsqueda</div>
           ) : (
             tipos.map((tipo, index) => (
               <div key={tipo.id} className="tipo-card" style={{ animationDelay: `${index * 0.1}s` }}>

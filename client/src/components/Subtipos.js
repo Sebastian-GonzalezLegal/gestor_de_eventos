@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaFilter, FaIdCard, FaTag, FaCalendarAlt, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaFilter, FaIdCard, FaTag, FaCalendarAlt, FaTimes, FaSearch } from 'react-icons/fa';
 import { subtiposAPI, tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
@@ -7,6 +7,7 @@ import './Vecinos.css';
 const Subtipos = () => {
   const { isAdmin, isSubsecretaria } = useUser();
   const canManage = isAdmin || isSubsecretaria;
+  const [allSubtipos, setAllSubtipos] = useState([]);
   const [subtipos, setSubtipos] = useState([]);
   const [tipos, setTipos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -14,6 +15,7 @@ const Subtipos = () => {
   const [editingSubtipo, setEditingSubtipo] = useState(null);
   const [formData, setFormData] = useState({ nombre: '', tipo_id: '' });
   const [selectedTipo, setSelectedTipo] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [alert, setAlert] = useState(null);
 
   useEffect(() => {
@@ -28,20 +30,34 @@ const Subtipos = () => {
   }, []);
 
   useEffect(() => {
+    filterSubtipos();
+  }, [allSubtipos, selectedTipo, searchTerm]);
+
+  const filterSubtipos = () => {
+    let result = allSubtipos;
+
     if (selectedTipo) {
-      loadSubtiposByTipo(selectedTipo);
-    } else {
-      loadAllSubtipos();
+        result = result.filter(s => s.tipo_id.toString() === selectedTipo);
     }
-  }, [selectedTipo]);
+
+    if (searchTerm) {
+        const lower = searchTerm.toLowerCase();
+        result = result.filter(s => s.nombre.toLowerCase().includes(lower));
+    }
+
+    setSubtipos(result);
+  };
 
   const loadData = async () => {
     try {
       setLoading(true);
-      await Promise.all([
-        loadAllSubtipos(),
-        loadTipos()
+      const [subtiposRes, tiposRes] = await Promise.all([
+        subtiposAPI.getAll(),
+        tiposAPI.getAll()
       ]);
+      setAllSubtipos(subtiposRes.data);
+      setSubtipos(subtiposRes.data);
+      setTipos(tiposRes.data);
     } catch (error) {
       showAlert('Error al cargar datos', 'error');
     } finally {
@@ -52,27 +68,9 @@ const Subtipos = () => {
   const loadAllSubtipos = async () => {
     try {
       const response = await subtiposAPI.getAll();
-      setSubtipos(response.data);
+      setAllSubtipos(response.data);
     } catch (error) {
       showAlert('Error al cargar subtipos', 'error');
-    }
-  };
-
-  const loadSubtiposByTipo = async (tipoId) => {
-    try {
-      const response = await subtiposAPI.getByTipo(tipoId);
-      setSubtipos(response.data);
-    } catch (error) {
-      showAlert('Error al cargar subtipos del tipo', 'error');
-    }
-  };
-
-  const loadTipos = async () => {
-    try {
-      const response = await tiposAPI.getAll();
-      setTipos(response.data);
-    } catch (error) {
-      showAlert('Error al cargar tipos', 'error');
     }
   };
 
@@ -101,11 +99,7 @@ const Subtipos = () => {
       setShowModal(false);
       setEditingSubtipo(null);
       setFormData({ nombre: '', tipo_id: '' });
-      if (selectedTipo) {
-        loadSubtiposByTipo(selectedTipo);
-      } else {
-        loadAllSubtipos();
-      }
+      loadAllSubtipos();
     } catch (error) {
       showAlert(
         error.response?.data?.error || 'Error al guardar el subtipo',
@@ -128,11 +122,7 @@ const Subtipos = () => {
     try {
       await subtiposAPI.delete(id);
       showAlert('Subtipo eliminado correctamente', 'success');
-      if (selectedTipo) {
-        loadSubtiposByTipo(selectedTipo);
-      } else {
-        loadAllSubtipos();
-      }
+      loadAllSubtipos();
     } catch (error) {
       showAlert('Error al eliminar el subtipo', 'error');
     }
@@ -152,6 +142,7 @@ const Subtipos = () => {
 
   const clearFilter = () => {
     setSelectedTipo('');
+    setSearchTerm('');
   };
 
   if (loading) {
@@ -163,42 +154,11 @@ const Subtipos = () => {
       <div className="card">
         <div className="card-header">
           <h2>Subtipos</h2>
-          <div className="header-actions" style={{ display: 'flex', gap: '15px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div className="filter-group" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <label htmlFor="tipo-filter" style={{ fontWeight: '500', color: '#333', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <FaFilter /> Filtrar por Tipo:
-              </label>
-              <select
-                id="tipo-filter"
-                value={selectedTipo}
-                onChange={(e) => setSelectedTipo(e.target.value)}
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '4px',
-                  border: '1px solid #ddd',
-                  background: 'white',
-                  fontSize: '14px'
-                }}
-              >
-                <option value="">Todos los tipos</option>
-                {tipos.map((tipo) => (
-                  <option key={tipo.id} value={tipo.id}>
-                    {tipo.nombre}
-                  </option>
-                ))}
-              </select>
-              {selectedTipo && (
-                <button className="btn btn-secondary" onClick={clearFilter} style={{ padding: '6px 12px', fontSize: '14px' }}>
-                  Limpiar Filtro
-                </button>
-              )}
-            </div>
-            {canManage && (
+          {canManage && (
               <button className="btn btn-primary" onClick={openCreateModal}>
                 <FaPlus /> Nuevo Subtipo
               </button>
             )}
-          </div>
         </div>
 
         {alert && (
@@ -207,15 +167,54 @@ const Subtipos = () => {
           </div>
         )}
 
+        <div className="filters-container">
+            <div className="advanced-filters">
+                <div className="search-box filter-group" style={{ flex: 2 }}>
+                    <div className="search-input-container">
+                        <FaSearch className="search-icon" />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar subtipo..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="search-input"
+                        />
+                        {searchTerm && (
+                            <button
+                            type="button"
+                            className="clear-search"
+                            onClick={() => setSearchTerm('')}
+                            title="Limpiar búsqueda"
+                            >
+                            <FaTimes />
+                            </button>
+                        )}
+                    </div>
+                </div>
+                <div className="filter-group">
+                    <select
+                        id="tipo-filter"
+                        value={selectedTipo}
+                        onChange={(e) => setSelectedTipo(e.target.value)}
+                        className="filter-select"
+                    >
+                        <option value="">Todos los tipos</option>
+                        {tipos.map((tipo) => (
+                        <option key={tipo.id} value={tipo.id}>
+                            {tipo.nombre}
+                        </option>
+                        ))}
+                    </select>
+                </div>
+            </div>
+        </div>
+
         <div className="eventos-grid">
           {loading ? (
             <div className="loading">Cargando subtipos...</div>
           ) : subtipos.length === 0 ? (
             <div className="no-data">
-              {selectedTipo
-                ? 'No hay subtipos para el tipo seleccionado'
-                : 'No hay subtipos registrados'
-              }
+               No hay subtipos que coincidan con los filtros
             </div>
           ) : (
             subtipos.map((subtipo, index) => (

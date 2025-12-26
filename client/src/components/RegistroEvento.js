@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers, FaTimes, FaMapMarkerAlt, FaClock, FaBuilding, FaTag } from 'react-icons/fa';
-import { registrosAPI, vecinosAPI, eventosAPI } from '../services/api';
+import { registrosAPI, vecinosAPI, eventosAPI, subsecretariasAPI, tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import './RegistroEvento.css';
 
 const RegistroEvento = () => {
   const { isVisitor } = useUser();
   const [vecinos, setVecinos] = useState([]);
+  const [allVecinos, setAllVecinos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [vecinoFilters, setVecinoFilters] = useState({ estado: 'todos' });
   const [vecinoEncontrado, setVecinoEncontrado] = useState(null);
   const [eventos, setEventos] = useState([]);
   const [eventosVecino, setEventosVecino] = useState([]);
@@ -16,49 +18,71 @@ const RegistroEvento = () => {
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState(null);
   const [loadingVecinos, setLoadingVecinos] = useState(false);
+  
+  // Event Dropdown Filters
+  const [eventFilters, setEventFilters] = useState({
+    subsecretaria: '',
+    tipo: ''
+  });
+  const [subsecretarias, setSubsecretarias] = useState([]);
+  const [tipos, setTipos] = useState([]);
 
   useEffect(() => {
-    loadEventos();
-    loadVecinos();
+    loadInitialData();
   }, []);
 
-  const loadEventos = async () => {
+  const loadInitialData = async () => {
     try {
-      const response = await eventosAPI.getActive();
-      setEventos(response.data);
+        setLoadingVecinos(true);
+        const [eventosRes, vecinosRes, subsecretariasRes, tiposRes] = await Promise.all([
+            eventosAPI.getActive(),
+            vecinosAPI.getAll(),
+            subsecretariasAPI.getAll(),
+            tiposAPI.getAll()
+        ]);
+        setEventos(eventosRes.data);
+        setAllVecinos(vecinosRes.data);
+        setVecinos(vecinosRes.data);
+        setSubsecretarias(subsecretariasRes.data);
+        setTipos(tiposRes.data);
     } catch (error) {
-      showAlert('Error al cargar eventos', 'error');
-    }
-  };
-
-  const loadVecinos = async () => {
-    try {
-      setLoadingVecinos(true);
-      const response = await vecinosAPI.getAll();
-      setVecinos(response.data);
-    } catch (error) {
-      showAlert('Error al cargar vecinos', 'error');
+        showAlert('Error al cargar datos iniciales', 'error');
     } finally {
-      setLoadingVecinos(false);
+        setLoadingVecinos(false);
     }
   };
 
-  const handleSearch = async (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
+  // Filter Neighbors
+  useEffect(() => {
+    let result = allVecinos;
 
-    if (term.trim() === '') {
-      loadVecinos();
-      return;
+    if (searchTerm) {
+      const lowerTerm = searchTerm.toLowerCase();
+      result = result.filter(v => 
+        v.nombre.toLowerCase().includes(lowerTerm) ||
+        v.apellido.toLowerCase().includes(lowerTerm) ||
+        v.documento.includes(lowerTerm)
+      );
     }
 
-    try {
-      const response = await vecinosAPI.search(term);
-      setVecinos(response.data);
-    } catch (error) {
-      showAlert('Error en la búsqueda', 'error');
+    if (vecinoFilters.estado !== 'todos') {
+        result = result.filter(v => {
+            if (vecinoFilters.estado === 'activos') return v.activo;
+            if (vecinoFilters.estado === 'inactivos') return !v.activo;
+            return true;
+        });
     }
-  };
+
+    setVecinos(result);
+  }, [allVecinos, searchTerm, vecinoFilters]);
+
+  // Filtered Events
+  const filteredEventos = eventos.filter(evento => {
+      if (!evento.activo) return false;
+      if (eventFilters.subsecretaria && evento.subsecretaria_id.toString() !== eventFilters.subsecretaria) return false;
+      if (eventFilters.tipo && evento.tipo_id?.toString() !== eventFilters.tipo) return false;
+      return true;
+  });
 
   const seleccionarVecino = async (vecino) => {
     setVecinoEncontrado(vecino);
@@ -135,32 +159,41 @@ const RegistroEvento = () => {
 
         {!vecinoEncontrado ? (
           <>
-            <div className="search-section">
-              <div className="form-group">
-                <label>Buscar Vecino</label>
-                <div className="search-input-container">
-                  <FaSearch className="search-icon" />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre, apellido, documento..."
-                    value={searchTerm}
-                    onChange={handleSearch}
-                    className="search-input"
-                  />
-                  {searchTerm && (
-                    <button
-                      type="button"
-                      className="clear-search"
-                      onClick={() => {
-                        setSearchTerm('');
-                        loadVecinos();
-                      }}
-                      title="Limpiar búsqueda"
+            <div className="search-section filters-container">
+              <div className="advanced-filters">
+                  <div className="search-box filter-group" style={{ flex: 2 }}>
+                    <div className="search-input-container">
+                      <FaSearch className="search-icon" />
+                      <input
+                        type="text"
+                        placeholder="Buscar por nombre, apellido, documento..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                      />
+                      {searchTerm && (
+                        <button
+                          type="button"
+                          className="clear-search"
+                          onClick={() => setSearchTerm('')}
+                          title="Limpiar búsqueda"
+                        >
+                          <FaTimes />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="filter-group">
+                    <select
+                        value={vecinoFilters.estado}
+                        onChange={(e) => setVecinoFilters({...vecinoFilters, estado: e.target.value})}
+                        className="filter-select"
                     >
-                      <FaTimes />
-                    </button>
-                  )}
-                </div>
+                        <option value="todos">Todos los estados</option>
+                        <option value="activos">Activos</option>
+                        <option value="inactivos">Inactivos</option>
+                    </select>
+                  </div>
               </div>
             </div>
 
@@ -231,6 +264,34 @@ const RegistroEvento = () => {
                 {!isVisitor && (
                   <div className="card">
                     <h3>Registrar a Nuevo Evento</h3>
+                    
+                    {/* Event Filters */}
+                    <div className="event-filters" style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
+                        <div style={{ marginBottom: '10px' }}>
+                            <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '5px' }}>Filtrar Eventos:</label>
+                            <div style={{ display: 'flex', gap: '10px' }}>
+                                <select 
+                                    className="form-select" 
+                                    style={{ fontSize: '0.85rem' }}
+                                    value={eventFilters.subsecretaria}
+                                    onChange={(e) => setEventFilters({...eventFilters, subsecretaria: e.target.value})}
+                                >
+                                    <option value="">Todas las Subsecretarías</option>
+                                    {subsecretarias.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
+                                </select>
+                                <select 
+                                    className="form-select" 
+                                    style={{ fontSize: '0.85rem' }}
+                                    value={eventFilters.tipo}
+                                    onChange={(e) => setEventFilters({...eventFilters, tipo: e.target.value})}
+                                >
+                                    <option value="">Todos los Tipos</option>
+                                    {tipos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
                     <form onSubmit={handleRegistro}>
                       <div className="form-group">
                         <label>Seleccionar Evento *</label>
@@ -241,14 +302,15 @@ const RegistroEvento = () => {
                           className="form-select"
                         >
                           <option value="">-- Seleccione un evento --</option>
-                          {eventos
-                            .filter(e => e.activo)
-                            .map((evento) => (
+                          {filteredEventos.map((evento) => (
                               <option key={evento.id} value={evento.id}>
-                                {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')} ({evento.subsecretaria_nombre || 'General'})
+                                {evento.nombre} - {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
                               </option>
                             ))}
                         </select>
+                        {filteredEventos.length === 0 && (
+                            <small className="text-muted">No hay eventos activos que coincidan con los filtros.</small>
+                        )}
                       </div>
 
                       <div className="form-group">

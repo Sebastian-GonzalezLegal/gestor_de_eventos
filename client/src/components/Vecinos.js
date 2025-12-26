@@ -10,14 +10,24 @@ import './Vecinos.css';
 const Vecinos = () => {
   const { isAdmin, isSubsecretaria } = useUser();
   const canManage = isAdmin || isSubsecretaria;
+  
+  // Data states
+  const [allVecinos, setAllVecinos] = useState([]);
   const [vecinos, setVecinos] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Filter states
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    estado: 'todos' // todos, activos, inactivos
+  });
+
+  // UI states
   const [showModal, setShowModal] = useState(false);
   const [showDetalle, setShowDetalle] = useState(false);
   const [editingVecino, setEditingVecino] = useState(null);
   const [detalleVecino, setDetalleVecino] = useState(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
   const [alert, setAlert] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyVecino, setHistoryVecino] = useState(null);
@@ -30,6 +40,7 @@ const Vecinos = () => {
     try {
       setLoading(true);
       const response = await vecinosAPI.getAll();
+      setAllVecinos(response.data);
       setVecinos(response.data);
     } catch (error) {
       showAlert('Error al cargar vecinos', 'error');
@@ -38,21 +49,39 @@ const Vecinos = () => {
     }
   };
 
-  const handleSearch = async (e) => {
-    const term = e.target.value;
-    setSearchTerm(term);
+  // Apply filters
+  useEffect(() => {
+    let result = allVecinos;
 
-    if (term.trim() === '') {
-      loadVecinos();
-      return;
+    // Search term
+    if (searchTerm) {
+      const lowerTerm = searchTerm.toLowerCase();
+      result = result.filter(vecino => 
+        vecino.nombre?.toLowerCase().includes(lowerTerm) ||
+        vecino.apellido?.toLowerCase().includes(lowerTerm) ||
+        vecino.documento?.toLowerCase().includes(lowerTerm) ||
+        vecino.email?.toLowerCase().includes(lowerTerm)
+      );
     }
 
-    try {
-      const response = await vecinosAPI.search(term);
-      setVecinos(response.data);
-    } catch (error) {
-      showAlert('Error en la búsqueda', 'error');
+    // Estado filter
+    if (filters.estado !== 'todos') {
+      result = result.filter(vecino => {
+        if (filters.estado === 'activos') return vecino.activo;
+        if (filters.estado === 'inactivos') return !vecino.activo;
+        return true;
+      });
     }
+
+    setVecinos(result);
+  }, [allVecinos, searchTerm, filters]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleCreate = () => {
@@ -149,29 +178,43 @@ const Vecinos = () => {
           </div>
         )}
 
-        <div className="search-box">
-          <div className="search-input-container">
-            <FaSearch className="search-icon" />
-            <input
-              type="text"
-              placeholder="Buscar por nombre, apellido, documento o email..."
-              value={searchTerm}
-              onChange={handleSearch}
-              className="search-input"
-            />
-            {searchTerm && (
-              <button
-                type="button"
-                className="clear-search"
-                onClick={() => {
-                  setSearchTerm('');
-                  loadVecinos();
-                }}
-                title="Limpiar búsqueda"
+        <div className="filters-container">
+          <div className="search-box">
+            <div className="search-input-container">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Buscar por nombre, apellido, documento o email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  className="clear-search"
+                  onClick={() => setSearchTerm('')}
+                  title="Limpiar búsqueda"
+                >
+                  <FaTimes />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="advanced-filters">
+            <div className="filter-group">
+              <select
+                name="estado"
+                value={filters.estado}
+                onChange={handleFilterChange}
+                className="filter-select"
               >
-                <FaTimes />
-              </button>
-            )}
+                <option value="todos">Todos los estados</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -192,7 +235,7 @@ const Vecinos = () => {
               {vecinos.length === 0 ? (
                 <tr>
                   <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
-                    No hay vecinos registrados
+                    No hay vecinos que coincidan con los filtros
                   </td>
                 </tr>
               ) : (

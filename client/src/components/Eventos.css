@@ -15,6 +15,88 @@
   }
 }
 
+/* Filters */
+.filters-container {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.search-box {
+  margin-bottom: 16px;
+}
+
+.advanced-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-select,
+.filter-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background-color: white;
+  color: var(--text-dark);
+  transition: border-color 0.2s;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.filter-select:disabled {
+  background-color: #e9ecef;
+  cursor: not-allowed;
+}
+
+.btn-clear-filters {
+  background: none;
+  border: 1px solid #ced4da;
+  padding: 9px 16px;
+  border-radius: 6px;
+  color: var(--text);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-clear-filters:hover {
+  background: #e9ecef;
+  color: var(--danger);
+  border-color: #e9ecef;
+}
+
+@media (max-width: 768px) {
+  .advanced-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    width: 100%;
+  }
+  
+  .btn-clear-filters {
+    width: 100%;
+  }
+}
+
 /* Grid Layout */
 .eventos-grid {
   display: grid;
@@ -189,8 +271,8 @@
 .detail-date svg { color: var(--success); }
 .detail-time svg { color: var(--info); }
 .detail-location svg { color: #6f42c1; }
-/* Add these to your existing Eventos.css or append to it */
 
+/* Status Badges & States */
 .evento-card.expired {
   opacity: 0.7;
   border-color: #ddd;

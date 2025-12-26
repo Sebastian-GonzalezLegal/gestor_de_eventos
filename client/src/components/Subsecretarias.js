@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaIdCard, FaCalendarAlt, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaIdCard, FaCalendarAlt, FaTimes, FaSearch } from 'react-icons/fa';
 import { subsecretariasAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import './Vecinos.css';
 
 const Subsecretarias = () => {
   const { isAdmin } = useUser();
+  const [allSubsecretarias, setAllSubsecretarias] = useState([]);
   const [subsecretarias, setSubsecretarias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingSubsecretaria, setEditingSubsecretaria] = useState(null);
   const [formData, setFormData] = useState({ nombre: '' });
   const [alert, setAlert] = useState(null);
+  
+  // Filters
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     loadSubsecretarias();
@@ -21,6 +25,7 @@ const Subsecretarias = () => {
     try {
       setLoading(true);
       const response = await subsecretariasAPI.getAll();
+      setAllSubsecretarias(response.data);
       setSubsecretarias(response.data);
     } catch (error) {
       showAlert('Error al cargar subsecretarías', 'error');
@@ -28,6 +33,15 @@ const Subsecretarias = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let result = allSubsecretarias;
+    if (searchTerm) {
+        const lower = searchTerm.toLowerCase();
+        result = result.filter(s => s.nombre.toLowerCase().includes(lower));
+    }
+    setSubsecretarias(result);
+  }, [allSubsecretarias, searchTerm]);
 
   const showAlert = (message, type = 'info') => {
     setAlert({ message, type });
@@ -117,11 +131,36 @@ const Subsecretarias = () => {
           </div>
         )}
 
+        <div className="filters-container">
+            <div className="search-box">
+                <div className="search-input-container">
+                    <FaSearch className="search-icon" />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar subsecretaría..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                     {searchTerm && (
+                        <button
+                          type="button"
+                          className="clear-search"
+                          onClick={() => setSearchTerm('')}
+                          title="Limpiar búsqueda"
+                        >
+                          <FaTimes />
+                        </button>
+                      )}
+                </div>
+            </div>
+        </div>
+
         <div className="eventos-grid">
           {loading ? (
             <div className="loading">Cargando subsecretarías...</div>
           ) : subsecretarias.length === 0 ? (
-            <div className="no-data">No hay subsecretarías registradas</div>
+            <div className="no-data">No hay subsecretarías que coincidan con la búsqueda</div>
           ) : (
             subsecretarias.map((subsecretaria, index) => (
               <div key={subsecretaria.id} className="evento-card" style={{ animationDelay: `${index * 0.1}s` }}>
