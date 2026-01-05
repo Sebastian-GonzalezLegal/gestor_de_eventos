@@ -1,0 +1,249 @@
+.vecinos, .eventos {
+  padding: 16px 0;
+}
+
+/* Filters */
+.filters-container {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.search-box {
+  margin-bottom: 16px;
+}
+
+.advanced-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-group {
+  flex: 1;
+  min-width: 180px;
+}
+
+.filter-select,
+.filter-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background-color: white;
+  color: var(--text-dark);
+  transition: border-color 0.2s;
+}
+
+.filter-select:focus,
+.filter-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+}
+
+.btn-clear-filters {
+  background: none;
+  border: 1px solid #ced4da;
+  padding: 9px 16px;
+  border-radius: 6px;
+  color: var(--text);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-clear-filters:hover {
+  background: #e9ecef;
+  color: var(--danger);
+  border-color: #e9ecef;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  background: white;
+  color: var(--text-secondary);
+  border-color: var(--border);
+}
+
+.btn-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.btn-icon.btn-primary {
+  color: var(--primary);
+  background: var(--primary-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-primary:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-icon.btn-secondary {
+  color: var(--text-secondary);
+  background: #f1f5f9;
+  border-color: transparent;
+}
+.btn-icon.btn-secondary:hover {
+  background: var(--text-secondary);
+  color: white;
+}
+
+.btn-icon.btn-info {
+  color: var(--info);
+  background: var(--info-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-info:hover {
+  background: var(--info);
+  color: white;
+}
+
+.btn-icon.btn-success {
+  color: #059669;
+  background: var(--success-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-success:hover {
+  background: #059669;
+  color: white;
+}
+
+.btn-icon.btn-warning {
+  color: #d97706;
+  background: var(--warning-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-warning:hover {
+  background: #d97706;
+  color: white;
+}
+
+.btn-icon.btn-danger {
+  color: var(--danger);
+  background: var(--danger-subtle);
+  border-color: transparent;
+}
+.btn-icon.btn-danger:hover {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-icon:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Styles for Subsecretarias and Subtipos cards */
+.eventos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.evento-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  animation: slideInUp 0.6s ease forwards;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.evento-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(220, 53, 69, 0.2);
+}
+
+@keyframes slideInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.evento-header {
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border);
+}
+
+.evento-header h3 {
+  margin: 0;
+  color: var(--text-dark);
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.evento-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.evento-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.evento-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.detail-icon {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.detail-item span:last-child {
+  font-weight: 500;
+  color: var(--text);
+}
