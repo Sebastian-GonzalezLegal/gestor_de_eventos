@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { FaSave, FaTimes } from 'react-icons/fa';
 import { vecinosAPI } from '../services/api';
+import { useNotification } from '../contexts/NotificationContext';
 
 const VecinoForm = ({ vecino, onClose, onSave }) => {
+  const { showNotification } = useNotification();
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -14,7 +16,6 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
     piso: '',
     departamento: ''
   });
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -38,12 +39,10 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
       ...formData,
       [e.target.name]: e.target.value,
     });
-    setError(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     try {
@@ -52,9 +51,12 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
       } else {
         await vecinosAPI.create(formData);
       }
-      onSave();
+      onSave(); // The success notification is handled by the parent component (Vecinos.js) or we can move it here. 
+      // Plan said: "Update VecinoForm: Replace local alert/error state with useNotification".
+      // Vecinos.js already has "Vecino guardado correctamente" in handleSave.
+      // However, if an error occurs HERE, we should show it here.
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al guardar vecino');
+      showNotification(err.response?.data?.error || 'Error al guardar vecino', 'error');
     } finally {
       setLoading(false);
     }
@@ -69,10 +71,6 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
         </div>
 
         <div className="modal-body">
-          {error && (
-            <div className="alert alert-error">{error}</div>
-          )}
-
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Nombre *</label>
@@ -132,7 +130,7 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
               />
             </div>
 
-            <h4 style={{marginTop: '20px', marginBottom: '10px', fontSize: '1.1em', color: '#555'}}>Dirección</h4>
+            <h4 style={{marginTop: '20px', marginBottom: '10px', fontSize: '1.1em', color: 'var(--text-secondary)'}}>Dirección</h4>
             
             <div style={{display: 'flex', gap: '10px'}}>
               <div className="form-group" style={{flex: 2}}>

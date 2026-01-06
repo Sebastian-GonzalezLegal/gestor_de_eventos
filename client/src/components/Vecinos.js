@@ -6,11 +6,13 @@ import VecinoForm from './VecinoForm';
 import VecinoDetalle from './VecinoDetalle';
 import ConfirmationModal from './ConfirmationModal';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext'; // Import Notification Hook
 import { formatDate } from '../utils/dateUtils';
 import './Vecinos.css';
 
 const Vecinos = () => {
   const { isAdmin, isSubsecretaria } = useUser();
+  const { showNotification } = useNotification(); // Use notification
   const canManage = isAdmin || isSubsecretaria;
   
   // Data states
@@ -30,7 +32,6 @@ const Vecinos = () => {
   const [editingVecino, setEditingVecino] = useState(null);
   const [detalleVecino, setDetalleVecino] = useState(null);
   const [detalleLoading, setDetalleLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyVecino, setHistoryVecino] = useState(null);
   
@@ -54,7 +55,7 @@ const Vecinos = () => {
       setAllVecinos(response.data);
       setVecinos(response.data);
     } catch (error) {
-      showAlert('Error al cargar vecinos', 'error');
+      showNotification('Error al cargar vecinos', 'error');
     } finally {
       setLoading(false);
     }
@@ -112,7 +113,7 @@ const Vecinos = () => {
       setDetalleVecino(data);
       setShowDetalle(true);
     } catch (error) {
-      showAlert('Error al cargar el detalle del vecino', 'error');
+      showNotification('Error al cargar el detalle del vecino', 'error');
     } finally {
       setDetalleLoading(false);
     }
@@ -128,10 +129,10 @@ const Vecinos = () => {
       onConfirm: async () => {
         try {
           await vecinosAPI.delete(id);
-          showAlert('Vecino eliminado correctamente', 'success');
+          showNotification('Vecino eliminado correctamente', 'success');
           loadVecinos();
         } catch (error) {
-          showAlert(error.response?.data?.error || 'Error al eliminar vecino', 'error');
+          showNotification(error.response?.data?.error || 'Error al eliminar vecino', 'error');
         }
       }
     });
@@ -140,10 +141,10 @@ const Vecinos = () => {
   const handleToggleActivo = async (id) => {
     try {
       await vecinosAPI.toggleActivo(id);
-      showAlert('Estado actualizado correctamente', 'success');
+      showNotification('Estado actualizado correctamente', 'success');
       loadVecinos();
     } catch (error) {
-      showAlert('Error al actualizar estado', 'error');
+      showNotification('Error al actualizar estado', 'error');
     }
   };
 
@@ -155,15 +156,16 @@ const Vecinos = () => {
   const handleSave = () => {
     setShowModal(false);
     loadVecinos();
-  };
-
-  const showAlert = (message, type) => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
+    showNotification('Vecino guardado correctamente', 'success');
   };
 
   if (loading) {
-    return <div className="loading">Cargando...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Cargando...</p>
+      </div>
+    );
   }
 
   return (
@@ -177,12 +179,6 @@ const Vecinos = () => {
             </button>
           )}
         </div>
-
-        {alert && (
-          <div className={`alert alert-${alert.type}`}>
-            {alert.message}
-          </div>
-        )}
 
         <div className="filters-container">
           <div className="search-box">
@@ -240,7 +236,7 @@ const Vecinos = () => {
             <tbody>
               {vecinos.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center', padding: '20px' }}>
+                  <td colSpan="7" style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
                     No hay vecinos que coincidan con los filtros
                   </td>
                 </tr>

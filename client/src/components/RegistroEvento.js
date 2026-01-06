@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers, FaTimes, FaMapMarkerAlt, FaClock, FaBuilding, FaTag } from 'react-icons/fa';
 import { registrosAPI, vecinosAPI, eventosAPI, subsecretariasAPI, tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './RegistroEvento.css';
 
 const RegistroEvento = () => {
   const { isVisitor } = useUser();
+  const { showNotification } = useNotification();
   const [vecinos, setVecinos] = useState([]);
   const [allVecinos, setAllVecinos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,7 +18,6 @@ const RegistroEvento = () => {
   const [eventoSeleccionado, setEventoSeleccionado] = useState('');
   const [notas, setNotas] = useState('');
   const [loading, setLoading] = useState(false);
-  const [alert, setAlert] = useState(null);
   const [loadingVecinos, setLoadingVecinos] = useState(false);
   
   // Event Dropdown Filters
@@ -46,7 +47,7 @@ const RegistroEvento = () => {
         setSubsecretarias(subsecretariasRes.data);
         setTipos(tiposRes.data);
     } catch (error) {
-        showAlert('Error al cargar datos iniciales', 'error');
+        showNotification('Error al cargar datos iniciales', 'error');
     } finally {
         setLoadingVecinos(false);
     }
@@ -92,7 +93,7 @@ const RegistroEvento = () => {
       const eventosDelVecino = response.data.filter(registro => registro.vecino_id === vecino.id);
       setEventosVecino(eventosDelVecino);
     } catch (error) {
-      showAlert('Error al cargar historial', 'error');
+      showNotification('Error al cargar historial', 'error');
     }
   };
 
@@ -107,7 +108,7 @@ const RegistroEvento = () => {
     e.preventDefault();
 
     if (!vecinoEncontrado) {
-      showAlert('Debe seleccionar un vecino', 'error');
+      showNotification('Debe seleccionar un vecino', 'error');
       return;
     }
 
@@ -119,7 +120,7 @@ const RegistroEvento = () => {
         notas: notas,
       });
 
-      showAlert('Registro exitoso', 'success');
+      showNotification('Registro exitoso', 'success');
       setEventoSeleccionado('');
       setNotas('');
 
@@ -128,15 +129,10 @@ const RegistroEvento = () => {
       const eventosDelVecino = response.data.filter(registro => registro.vecino_id === vecinoEncontrado.id);
       setEventosVecino(eventosDelVecino);
     } catch (error) {
-      showAlert(error.response?.data?.error || 'Error al registrar', 'error');
+      showNotification(error.response?.data?.error || 'Error al registrar', 'error');
     } finally {
       setLoading(false);
     }
-  };
-
-  const showAlert = (message, type) => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 5000);
   };
 
   return (
@@ -151,16 +147,10 @@ const RegistroEvento = () => {
           )}
         </div>
 
-        {alert && (
-          <div className={`alert alert-${alert.type}`}>
-            {alert.message}
-          </div>
-        )}
-
         {!vecinoEncontrado ? (
           <>
             <div className="search-section filters-container">
-              <div className="advanced-filters">
+              <div>
                   <div className="search-box filter-group" style={{ flex: 2 }}>
                     <div className="search-input-container">
                       <FaSearch className="search-icon" />
@@ -183,7 +173,7 @@ const RegistroEvento = () => {
                       )}
                     </div>
                   </div>
-                  <div className="filter-group">
+                  <div className="advanced-filters filter-group">
                     <select
                         value={vecinoFilters.estado}
                         onChange={(e) => setVecinoFilters({...vecinoFilters, estado: e.target.value})}
@@ -263,27 +253,31 @@ const RegistroEvento = () => {
               <div className="registro-form-column">
                 {!isVisitor && (
                   <div className="card">
-                    <h3>Registrar a Nuevo Evento</h3>
+                    <h3 style={{marginBottom: '20px'}}>Registrar a Nuevo Evento</h3>
                     
                     {/* Event Filters */}
-                    <div className="event-filters" style={{ marginBottom: '15px', padding: '10px', backgroundColor: '#f8f9fa', borderRadius: '5px' }}>
-                        <div style={{ marginBottom: '10px' }}>
-                            <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '5px' }}>Filtrar Eventos:</label>
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                    <div className="event-filters-container" style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)' }}>
+                        <div style={{ marginBottom: '8px', fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)' }}>
+                            Filtrar Eventos
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            <div style={{ flex: 1 }}>
                                 <select 
                                     className="form-select" 
-                                    style={{ fontSize: '0.85rem' }}
                                     value={eventFilters.subsecretaria}
                                     onChange={(e) => setEventFilters({...eventFilters, subsecretaria: e.target.value})}
+                                    style={{ fontSize: '0.9rem' }}
                                 >
                                     <option value="">Todas las Subsecretarías</option>
                                     {subsecretarias.map(s => <option key={s.id} value={s.id}>{s.nombre}</option>)}
                                 </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
                                 <select 
                                     className="form-select" 
-                                    style={{ fontSize: '0.85rem' }}
                                     value={eventFilters.tipo}
                                     onChange={(e) => setEventFilters({...eventFilters, tipo: e.target.value})}
+                                    style={{ fontSize: '0.9rem' }}
                                 >
                                     <option value="">Todos los Tipos</option>
                                     {tipos.map(t => <option key={t.id} value={t.id}>{t.nombre}</option>)}
@@ -300,6 +294,7 @@ const RegistroEvento = () => {
                           onChange={(e) => setEventoSeleccionado(e.target.value)}
                           required
                           className="form-select"
+                          style={{ height: 'auto', padding: '12px' }}
                         >
                           <option value="">-- Seleccione un evento --</option>
                           {filteredEventos.map((evento) => (
@@ -309,7 +304,9 @@ const RegistroEvento = () => {
                             ))}
                         </select>
                         {filteredEventos.length === 0 && (
-                            <small className="text-muted">No hay eventos activos que coincidan con los filtros.</small>
+                            <small style={{ color: 'var(--danger)', display: 'block', marginTop: '8px' }}>
+                                No hay eventos activos que coincidan con los filtros.
+                            </small>
                         )}
                       </div>
 
@@ -324,11 +321,12 @@ const RegistroEvento = () => {
                         />
                       </div>
 
-                      <div className="form-actions">
+                      <div className="form-actions" style={{ marginTop: '24px' }}>
                         <button
                           type="submit"
-                          className="btn btn-success btn-block"
+                          className="btn btn-primary btn-block"
                           disabled={loading || !eventoSeleccionado}
+                          style={{ padding: '14px', fontSize: '1rem' }}
                         >
                           <FaUserCheck /> {loading ? 'Registrando...' : 'Confirmar Registro'}
                         </button>
@@ -341,7 +339,7 @@ const RegistroEvento = () => {
               {/* COLUMNA 2: HISTORIAL */}
               <div className="historial-column">
                 <div className="card">
-                  <h3>Historial de Eventos</h3>
+                  <h3 style={{marginBottom: '20px'}}>Historial de Eventos</h3>
                   <div className="eventos-lista">
                     {eventosVecino && eventosVecino.length > 0 ? (
                       eventosVecino.map((evento) => (

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { FaSave, FaTimes } from 'react-icons/fa';
 import { subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 
 const EventoForm = ({ evento, onClose, onSave }) => {
   const { user, isSubsecretaria, isAdmin } = useUser();
+  const { showNotification } = useNotification();
   const [formData, setFormData] = useState({
     nombre: '',
     descripcion: '',
@@ -15,7 +17,6 @@ const EventoForm = ({ evento, onClose, onSave }) => {
     tipo_id: '',
     subtipo_id: '',
   });
-  const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [subsecretarias, setSubsecretarias] = useState([]);
   const [tipos, setTipos] = useState([]);
@@ -99,7 +100,6 @@ const EventoForm = ({ evento, onClose, onSave }) => {
       ...formData,
       [name]: value,
     });
-    setError(null);
 
     // Si cambia el tipo, resetear subtipo y cargar nuevos subtipos
     if (name === 'tipo_id') {
@@ -114,7 +114,6 @@ const EventoForm = ({ evento, onClose, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
     setLoading(true);
 
     try {
@@ -128,7 +127,7 @@ const EventoForm = ({ evento, onClose, onSave }) => {
 
       await onSave(dataToSend);
     } catch (err) {
-      setError(err.response?.data?.error || 'Error al guardar evento');
+      showNotification(err.response?.data?.error || 'Error al guardar evento', 'error');
     } finally {
       setLoading(false);
     }
@@ -143,10 +142,6 @@ const EventoForm = ({ evento, onClose, onSave }) => {
         </div>
 
         <div className="modal-body">
-          {error && (
-            <div className="alert alert-error">{error}</div>
-          )}
-
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Nombre *</label>

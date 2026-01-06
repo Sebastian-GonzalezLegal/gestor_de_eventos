@@ -1,0 +1,100 @@
+.notification-container {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+  }
+  
+  .notification-toast {
+    pointer-events: auto;
+    min-width: 300px;
+    max-width: 450px;
+    background: white;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-xl);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-left: 4px solid transparent;
+    color: var(--text-main);
+    background: var(--panel);
+  }
+  
+  .notification-icon {
+    font-size: 1.25rem;
+    padding-top: 2px;
+  }
+  
+  .notification-content {
+    flex: 1;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+  
+  .notification-close {
+    background: transparent;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .notification-close:hover {
+    background: rgba(0,0,0,0.05);
+    color: var(--text-main);
+  }
+  
+  /* Types */
+  .notification-success {
+    border-left-color: var(--success);
+  }
+  .notification-success .notification-icon {
+    color: var(--success);
+  }
+  
+  .notification-error {
+    border-left-color: var(--danger);
+  }
+  .notification-error .notification-icon {
+    color: var(--danger);
+  }
+  
+  .notification-warning {
+    border-left-color: var(--warning);
+  }
+  .notification-warning .notification-icon {
+    color: var(--warning);
+  }
+  
+  .notification-info {
+    border-left-color: var(--info);
+  }
+  .notification-info .notification-icon {
+    color: var(--info);
+  }
+  
+  @keyframes slideInRight {
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  /* Dark Mode Overrides for Toasts are handled automatically if variables are used correctly, 
+     but specific toast backgrounds might need tweaks if not using vars */
+  

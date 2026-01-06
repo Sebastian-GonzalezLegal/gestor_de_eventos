@@ -13,6 +13,7 @@ import Subtipos from './components/Subtipos';
 import Usuarios from './components/Usuarios';
 import WelcomeScreen from './components/WelcomeScreen';
 import { UserProvider, useUser } from './contexts/UserContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // Componente para proteger rutas
 const ProtectedRoute = ({ children, user }) => {
@@ -32,11 +33,13 @@ const PublicRoute = ({ children, user }) => {
 
 function App() {
   return (
-    <UserProvider>
-      <div className="App">
-        <AppContent />
-      </div>
-    </UserProvider>
+    <NotificationProvider>
+      <UserProvider>
+        <div className="App">
+          <AppContent />
+        </div>
+      </UserProvider>
+    </NotificationProvider>
   );
 }
 

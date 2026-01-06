@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaFilter, FaIdCard, FaTag, FaCalendarAlt, FaTimes, FaSearch } from 'react-icons/fa';
 import { subtiposAPI, tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './Vecinos.css';
 
 const Subtipos = () => {
   const { isAdmin, isSubsecretaria } = useUser();
+  const { showNotification } = useNotification();
   const canManage = isAdmin || isSubsecretaria;
   const [allSubtipos, setAllSubtipos] = useState([]);
   const [subtipos, setSubtipos] = useState([]);
@@ -16,7 +18,6 @@ const Subtipos = () => {
   const [formData, setFormData] = useState({ nombre: '', tipo_id: '' });
   const [selectedTipo, setSelectedTipo] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -59,7 +60,7 @@ const Subtipos = () => {
       setSubtipos(subtiposRes.data);
       setTipos(tiposRes.data);
     } catch (error) {
-      showAlert('Error al cargar datos', 'error');
+      showNotification('Error al cargar datos', 'error');
     } finally {
       setLoading(false);
     }
@@ -70,30 +71,25 @@ const Subtipos = () => {
       const response = await subtiposAPI.getAll();
       setAllSubtipos(response.data);
     } catch (error) {
-      showAlert('Error al cargar subtipos', 'error');
+      showNotification('Error al cargar subtipos', 'error');
     }
-  };
-
-  const showAlert = (message, type = 'info') => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nombre.trim() || !formData.tipo_id) {
-      showAlert('El nombre y tipo son requeridos', 'error');
+      showNotification('El nombre y tipo son requeridos', 'error');
       return;
     }
 
     try {
       if (editingSubtipo) {
         await subtiposAPI.update(editingSubtipo.id, formData);
-        showAlert('Subtipo actualizado correctamente', 'success');
+        showNotification('Subtipo actualizado correctamente', 'success');
       } else {
         await subtiposAPI.create(formData);
-        showAlert('Subtipo creado correctamente', 'success');
+        showNotification('Subtipo creado correctamente', 'success');
       }
 
       setShowModal(false);
@@ -101,7 +97,7 @@ const Subtipos = () => {
       setFormData({ nombre: '', tipo_id: '' });
       loadAllSubtipos();
     } catch (error) {
-      showAlert(
+      showNotification(
         error.response?.data?.error || 'Error al guardar el subtipo',
         'error'
       );
@@ -121,10 +117,10 @@ const Subtipos = () => {
 
     try {
       await subtiposAPI.delete(id);
-      showAlert('Subtipo eliminado correctamente', 'success');
+      showNotification('Subtipo eliminado correctamente', 'success');
       loadAllSubtipos();
     } catch (error) {
-      showAlert('Error al eliminar el subtipo', 'error');
+      showNotification('Error al eliminar el subtipo', 'error');
     }
   };
 
@@ -160,12 +156,6 @@ const Subtipos = () => {
               </button>
             )}
         </div>
-
-        {alert && (
-          <div className={`alert alert-${alert.type}`}>
-            {alert.message}
-          </div>
-        )}
 
         <div className="filters-container">
             <div className="advanced-filters">
@@ -270,45 +260,48 @@ const Subtipos = () => {
               <h3>
                 {editingSubtipo ? 'Editar Subtipo' : 'Nuevo Subtipo'}
               </h3>
-              <button className="modal-close" onClick={closeModal}><FaTimes /></button>
+              <button className="close-btn" onClick={closeModal}><FaTimes /></button>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="nombre">Nombre *</label>
-                <input
-                  type="text"
-                  id="nombre"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  required
-                  placeholder="Ingrese el nombre del subtipo"
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="tipo_id">Tipo *</label>
-                <select
-                  id="tipo_id"
-                  value={formData.tipo_id}
-                  onChange={(e) => setFormData({ ...formData, tipo_id: e.target.value })}
-                  required
-                >
-                  <option value="">Seleccione un tipo</option>
-                  {tipos.map((tipo) => (
-                    <option key={tipo.id} value={tipo.id}>
-                      {tipo.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingSubtipo ? 'Actualizar' : 'Crear'}
-                </button>
-              </div>
-            </form>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label htmlFor="nombre">Nombre *</label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    required
+                    placeholder="Ingrese el nombre del subtipo"
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="tipo_id">Tipo *</label>
+                  <select
+                    id="tipo_id"
+                    value={formData.tipo_id}
+                    onChange={(e) => setFormData({ ...formData, tipo_id: e.target.value })}
+                    required
+                    className="form-select"
+                  >
+                    <option value="">Seleccione un tipo</option>
+                    {tipos.map((tipo) => (
+                      <option key={tipo.id} value={tipo.id}>
+                        {tipo.nombre}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingSubtipo ? 'Actualizar' : 'Crear'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

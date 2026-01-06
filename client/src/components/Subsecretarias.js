@@ -2,17 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaIdCard, FaCalendarAlt, FaTimes, FaSearch } from 'react-icons/fa';
 import { subsecretariasAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './Vecinos.css';
 
 const Subsecretarias = () => {
   const { isAdmin } = useUser();
+  const { showNotification } = useNotification();
   const [allSubsecretarias, setAllSubsecretarias] = useState([]);
   const [subsecretarias, setSubsecretarias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingSubsecretaria, setEditingSubsecretaria] = useState(null);
   const [formData, setFormData] = useState({ nombre: '' });
-  const [alert, setAlert] = useState(null);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,7 +29,7 @@ const Subsecretarias = () => {
       setAllSubsecretarias(response.data);
       setSubsecretarias(response.data);
     } catch (error) {
-      showAlert('Error al cargar subsecretarías', 'error');
+      showNotification('Error al cargar subsecretarías', 'error');
     } finally {
       setLoading(false);
     }
@@ -43,26 +44,21 @@ const Subsecretarias = () => {
     setSubsecretarias(result);
   }, [allSubsecretarias, searchTerm]);
 
-  const showAlert = (message, type = 'info') => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nombre.trim()) {
-      showAlert('El nombre es requerido', 'error');
+      showNotification('El nombre es requerido', 'error');
       return;
     }
 
     try {
       if (editingSubsecretaria) {
         await subsecretariasAPI.update(editingSubsecretaria.id, formData);
-        showAlert('Subsecretaría actualizada correctamente', 'success');
+        showNotification('Subsecretaría actualizada correctamente', 'success');
       } else {
         await subsecretariasAPI.create(formData);
-        showAlert('Subsecretaría creada correctamente', 'success');
+        showNotification('Subsecretaría creada correctamente', 'success');
       }
 
       setShowModal(false);
@@ -70,7 +66,7 @@ const Subsecretarias = () => {
       setFormData({ nombre: '' });
       loadSubsecretarias();
     } catch (error) {
-      showAlert(
+      showNotification(
         error.response?.data?.error || 'Error al guardar la subsecretaría',
         'error'
       );
@@ -90,10 +86,10 @@ const Subsecretarias = () => {
 
     try {
       await subsecretariasAPI.delete(id);
-      showAlert('Subsecretaría eliminada correctamente', 'success');
+      showNotification('Subsecretaría eliminada correctamente', 'success');
       loadSubsecretarias();
     } catch (error) {
-      showAlert('Error al eliminar la subsecretaría', 'error');
+      showNotification('Error al eliminar la subsecretaría', 'error');
     }
   };
 
@@ -124,12 +120,6 @@ const Subsecretarias = () => {
             </button>
           )}
         </div>
-
-        {alert && (
-          <div className={`alert alert-${alert.type}`}>
-            {alert.message}
-          </div>
-        )}
 
         <div className="filters-container">
             <div className="search-box">
@@ -211,29 +201,31 @@ const Subsecretarias = () => {
               <h3>
                 {editingSubsecretaria ? 'Editar Subsecretaría' : 'Nueva Subsecretaría'}
               </h3>
-              <button className="modal-close" onClick={closeModal}><FaTimes /></button>
+              <button className="close-btn" onClick={closeModal}><FaTimes /></button>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="nombre">Nombre *</label>
-                <input
-                  type="text"
-                  id="nombre"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  required
-                  placeholder="Ingrese el nombre de la subsecretaría"
-                />
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingSubsecretaria ? 'Actualizar' : 'Crear'}
-                </button>
-              </div>
-            </form>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label htmlFor="nombre">Nombre *</label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    required
+                    placeholder="Ingrese el nombre de la subsecretaría"
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingSubsecretaria ? 'Actualizar' : 'Crear'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

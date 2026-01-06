@@ -593,7 +593,7 @@ const Navbar = ({ user, onLogout }) => {
         </div>
 
         <div className="mobile-footer-actions">
-             <button className="mobile-logout-btn">
+             <button className="mobile-logout-btn" onClick={onLogout}>
                 <FaSignOutAlt /> Cerrar Sesión
              </button>
           </div>

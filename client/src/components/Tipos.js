@@ -3,10 +3,12 @@ import { FaPlus, FaEdit, FaTrash, FaList, FaIdCard, FaCalendarAlt, FaTimes, FaSe
 import { useNavigate } from 'react-router-dom';
 import { tiposAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './Tipos.css';
 
 const Tipos = () => {
   const { isAdmin, isSubsecretaria } = useUser();
+  const { showNotification } = useNotification();
   const canManage = isAdmin || isSubsecretaria;
   const navigate = useNavigate();
   const [allTipos, setAllTipos] = useState([]);
@@ -15,7 +17,6 @@ const Tipos = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingTipo, setEditingTipo] = useState(null);
   const [formData, setFormData] = useState({ nombre: '' });
-  const [alert, setAlert] = useState(null);
   
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,7 +32,7 @@ const Tipos = () => {
       setAllTipos(response.data);
       setTipos(response.data);
     } catch (error) {
-      showAlert('Error al cargar tipos', 'error');
+      showNotification('Error al cargar tipos', 'error');
     } finally {
       setLoading(false);
     }
@@ -46,26 +47,21 @@ const Tipos = () => {
     setTipos(result);
   }, [allTipos, searchTerm]);
 
-  const showAlert = (message, type = 'info') => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.nombre.trim()) {
-      showAlert('El nombre es requerido', 'error');
+      showNotification('El nombre es requerido', 'error');
       return;
     }
 
     try {
       if (editingTipo) {
         await tiposAPI.update(editingTipo.id, formData);
-        showAlert('Tipo actualizado correctamente', 'success');
+        showNotification('Tipo actualizado correctamente', 'success');
       } else {
         await tiposAPI.create(formData);
-        showAlert('Tipo creado correctamente', 'success');
+        showNotification('Tipo creado correctamente', 'success');
       }
 
       setShowModal(false);
@@ -73,7 +69,7 @@ const Tipos = () => {
       setFormData({ nombre: '' });
       loadTipos();
     } catch (error) {
-      showAlert(
+      showNotification(
         error.response?.data?.error || 'Error al guardar el tipo',
         'error'
       );
@@ -93,10 +89,10 @@ const Tipos = () => {
 
     try {
       await tiposAPI.delete(id);
-      showAlert('Tipo eliminado correctamente', 'success');
+      showNotification('Tipo eliminado correctamente', 'success');
       loadTipos();
     } catch (error) {
-      showAlert('Error al eliminar el tipo', 'error');
+      showNotification('Error al eliminar el tipo', 'error');
     }
   };
 
@@ -127,12 +123,6 @@ const Tipos = () => {
             </button>
           )}
         </div>
-
-        {alert && (
-          <div className={`alert alert-${alert.type}`}>
-            {alert.message}
-          </div>
-        )}
 
         <div className="filters-container">
             <div className="search-box">
@@ -219,7 +209,7 @@ const Tipos = () => {
       </div>
 
       {showModal && canManage && (
-        <div className="modal">
+        <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
               <h3>
@@ -227,27 +217,29 @@ const Tipos = () => {
               </h3>
               <button className="close-btn" onClick={closeModal}><FaTimes /></button>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="nombre">Nombre *</label>
-                <input
-                  type="text"
-                  id="nombre"
-                  value={formData.nombre}
-                  onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                  required
-                  placeholder="Ingrese el nombre del tipo"
-                />
-              </div>
-              <div className="form-actions">
-                <button type="button" className="btn btn-secondary" onClick={closeModal}>
-                  Cancelar
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingTipo ? 'Actualizar' : 'Crear'}
-                </button>
-              </div>
-            </form>
+            <div className="modal-body">
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label htmlFor="nombre">Nombre *</label>
+                  <input
+                    type="text"
+                    id="nombre"
+                    value={formData.nombre}
+                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
+                    required
+                    placeholder="Ingrese el nombre del tipo"
+                  />
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn btn-secondary" onClick={closeModal}>
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn btn-primary">
+                    {editingTipo ? 'Actualizar' : 'Crear'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

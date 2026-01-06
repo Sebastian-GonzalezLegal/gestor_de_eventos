@@ -14,10 +14,12 @@ import {
 import { authAPI } from '../services/api';
 import Modal from './Modal';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './Usuarios.css';
 
 const Usuarios = () => {
   const { user, isAdmin } = useUser();
+  const { showNotification } = useNotification();
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -34,8 +36,6 @@ const Usuarios = () => {
     rol: 'user',
     subsecretaria_id: ''
   });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [subsecretarias, setSubsecretarias] = useState([]);
 
   // Cargar usuarios al montar el componente
@@ -68,7 +68,7 @@ const Usuarios = () => {
       setUsuarios(response.data);
     } catch (error) {
       console.error('Error al cargar usuarios:', error);
-      setError('Error al cargar los usuarios');
+      showNotification('Error al cargar los usuarios', 'error');
     } finally {
       setLoading(false);
     }
@@ -88,7 +88,6 @@ const Usuarios = () => {
       ...prev,
       [name]: value
     }));
-    setError('');
   };
 
   // Abrir modal para crear usuario
@@ -103,8 +102,6 @@ const Usuarios = () => {
     });
     setShowPassword(false);
     setShowModal(true);
-    setError('');
-    setSuccess('');
   };
 
   // Abrir modal para editar usuario
@@ -119,8 +116,6 @@ const Usuarios = () => {
     });
     setShowPassword(false);
     setShowModal(true);
-    setError('');
-    setSuccess('');
   };
 
   // Guardar usuario (crear o actualizar)
@@ -143,19 +138,19 @@ const Usuarios = () => {
         }
 
         await authAPI.updateUser(editingUser.id, dataToSave);
-        setSuccess('Usuario actualizado exitosamente');
+        showNotification('Usuario actualizado exitosamente', 'success');
       } else {
         // Crear usuario
         dataToSave.password = formData.password;
         await authAPI.register(dataToSave);
-        setSuccess('Usuario creado exitosamente');
+        showNotification('Usuario creado exitosamente', 'success');
       }
 
       setShowModal(false);
       loadUsuarios();
     } catch (error) {
       console.error('Error al guardar usuario:', error);
-      setError(error.response?.data?.error || 'Error al guardar el usuario');
+      showNotification(error.response?.data?.error || 'Error al guardar el usuario', 'error');
     }
   };
 
@@ -167,11 +162,11 @@ const Usuarios = () => {
 
     try {
       await authAPI.deleteUser(usuario.id);
-      setSuccess('Usuario eliminado exitosamente');
+      showNotification('Usuario eliminado exitosamente', 'success');
       loadUsuarios();
     } catch (error) {
       console.error('Error al eliminar usuario:', error);
-      setError(error.response?.data?.error || 'Error al eliminar el usuario');
+      showNotification(error.response?.data?.error || 'Error al eliminar el usuario', 'error');
     }
   };
 
@@ -179,11 +174,11 @@ const Usuarios = () => {
   const handleToggleActivo = async (usuario) => {
     try {
       await authAPI.toggleUserActivo(usuario.id);
-      setSuccess(`Usuario ${usuario.activo ? 'desactivado' : 'activado'} exitosamente`);
+      showNotification(`Usuario ${usuario.activo ? 'desactivado' : 'activado'} exitosamente`, 'success');
       loadUsuarios();
     } catch (error) {
       console.error('Error al cambiar estado del usuario:', error);
-      setError(error.response?.data?.error || 'Error al cambiar el estado del usuario');
+      showNotification(error.response?.data?.error || 'Error al cambiar el estado del usuario', 'error');
     }
   };
 
@@ -244,19 +239,6 @@ const Usuarios = () => {
             />
           </div>
         </div>
-
-        {/* Mensajes de error/éxito */}
-        {error && (
-          <div className="alert alert-danger">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="alert alert-success">
-            {success}
-          </div>
-        )}
 
         {/* Tabla de usuarios */}
         <div className="table-container">

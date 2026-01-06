@@ -4,10 +4,12 @@ import { eventosAPI, subsecretariasAPI, tiposAPI, subtiposAPI } from '../service
 import EventoForm from './EventoForm';
 import AttendeesModal from './AttendeesModal';
 import { useUser } from '../contexts/UserContext';
+import { useNotification } from '../contexts/NotificationContext';
 import './Eventos.css';
 
 const Eventos = () => {
   const { isAdmin, isSubsecretaria, user } = useUser();
+  const { showNotification } = useNotification();
   const canManage = isAdmin || isSubsecretaria;
   
   // Data states
@@ -36,7 +38,6 @@ const Eventos = () => {
   // UI states
   const [showModal, setShowModal] = useState(false);
   const [editingEvento, setEditingEvento] = useState(null);
-  const [alert, setAlert] = useState(null);
   const [attendeesModal, setAttendeesModal] = useState({
     show: false,
     loading: false,
@@ -90,7 +91,7 @@ const Eventos = () => {
       }));
     } catch (error) {
       console.error(error);
-      showAlert('Error al cargar datos iniciales', 'error');
+      showNotification('Error al cargar datos iniciales', 'error');
     } finally {
       setLoading(false);
     }
@@ -197,11 +198,6 @@ const Eventos = () => {
     setSearchTerm('');
   };
 
-  const showAlert = (message, type = 'success') => {
-    setAlert({ message, type });
-    setTimeout(() => setAlert(null), 3000);
-  };
-
   const handleCreate = () => {
     setEditingEvento(null);
     setShowModal(true);
@@ -217,10 +213,10 @@ const Eventos = () => {
 
     try {
       await eventosAPI.delete(id);
-      showAlert('Evento eliminado correctamente');
+      showNotification('Evento eliminado correctamente', 'success');
       loadInitialData();
     } catch (error) {
-      showAlert('Error al eliminar evento', 'error');
+      showNotification('Error al eliminar evento', 'error');
     }
   };
 
@@ -234,9 +230,9 @@ const Eventos = () => {
       setShowModal(false);
       setEditingEvento(null);
       loadInitialData();
-      showAlert('Evento guardado correctamente');
+      showNotification('Evento guardado correctamente', 'success');
     } catch (error) {
-      showAlert('Error al guardar evento', 'error');
+      showNotification('Error al guardar evento', 'error');
     }
   };
 
@@ -257,7 +253,7 @@ const Eventos = () => {
       }));
     } catch (error) {
       console.error('Error al cargar asistentes:', error);
-      showAlert('Error al cargar la lista de asistentes', 'error');
+      showNotification('Error al cargar la lista de asistentes', 'error');
       setAttendeesModal(prev => ({
         ...prev,
         loading: false
@@ -402,12 +398,6 @@ const Eventos = () => {
           </button>
         </div>
       </div>
-
-      {alert && (
-        <div className={`alert alert-${alert.type}`}>
-          {alert.message}
-        </div>
-      )}
 
       <div className="eventos-grid">
         {loading ? (
