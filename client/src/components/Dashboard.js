@@ -3,7 +3,6 @@ import {
   FaUsers, 
   FaCalendarAlt, 
   FaClipboardList, 
-  FaClock, 
   FaUserPlus, 
   FaCalendarPlus, 
   FaSearch, 
@@ -13,6 +12,7 @@ import {
 } from 'react-icons/fa';
 import { dashboardAPI, eventosAPI, vecinosAPI, registrosAPI } from '../services/api';
 import AttendeesModal from './AttendeesModal';
+import CalendarView from './CalendarView';
 import { Link } from 'react-router-dom';
 import { formatDate, getTodayFriendly } from '../utils/dateUtils';
 import './Dashboard.css';
@@ -41,6 +41,7 @@ const Dashboard = () => {
     registrosHoy: 0,
     proximosEventos: []
   });
+  const [calendarEvents, setCalendarEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Modals state
@@ -59,18 +60,22 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const response = await dashboardAPI.getStats();
-        setStats(response.data);
+        const [statsRes, eventsRes] = await Promise.all([
+          dashboardAPI.getStats(),
+          eventosAPI.getAll()
+        ]);
+        setStats(statsRes.data);
+        setCalendarEvents(eventsRes.data);
       } catch (err) {
-        console.error('Error fetching dashboard stats:', err);
+        console.error('Error fetching dashboard data:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   const handleCardClick = async (type) => {
@@ -281,52 +286,25 @@ const Dashboard = () => {
       {/* Main Content Grid */}
       <div className="dashboard-content">
         
-        {/* Upcoming Events List */}
+        {/* Calendar View */}
         <div className="events-section">
           <div className="section-header">
-            <h2>Próximos Eventos</h2>
+            <h2>Calendario de Eventos</h2>
             <Link to="/eventos" className="btn btn-sm btn-secondary">
-              Ver todos <FaArrowRight style={{marginLeft: 8}} />
+              Gestionar Eventos <FaArrowRight style={{marginLeft: 8}} />
             </Link>
           </div>
 
-          {stats.proximosEventos.length > 0 ? (
-            <div className="events-list">
-              {stats.proximosEventos.map((evento) => {
-                const dateObj = formatDate(evento.fecha_evento, { returnObject: true });
-                return (
-                  <div key={evento.id} className="event-item">
-                    <div className="event-date-badge">
-                      <div className="event-date-day">{dateObj.day}</div>
-                      <div className="event-date-month">{dateObj.month}</div>
-                    </div>
-                    <div className="event-details">
-                      <span className="event-name">{evento.nombre}</span>
-                      <div className="event-meta">
-                        <span className="meta-icon"><FaClock /> {evento.hora_evento?.substring(0, 5) || 'N/A'}</span>
-                        <span className="meta-icon"><FaUsers /> {evento.inscritos} inscritos</span>
-                      </div>
-                    </div>
-                    <div className="event-action">
-                      <button 
-                        className="btn btn-sm btn-secondary"
-                        onClick={() => handleViewAttendees(evento)}
-                        title="Ver lista de inscriptos"
-                      >
-                        <FaEye />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="empty-events">
-              <FaCalendarAlt style={{fontSize: 40, opacity: 0.3, marginBottom: 16}} />
-              <p>No hay eventos próximos programados.</p>
-              <Link to="/eventos" className="btn btn-primary btn-sm mt-3">Crear uno nuevo</Link>
-            </div>
-          )}
+          <CalendarView 
+            events={calendarEvents} 
+            onEventClick={(evento) => {
+               // Open attendee modal or details
+               // Since the user asked to see events of that day, and FullCalendar handles day clicks differently,
+               // clicking an event usually shows its details.
+               // We will use the handleViewAttendees which seems appropriate for "details".
+               handleViewAttendees(evento);
+            }} 
+          />
         </div>
 
         {/* Quick Actions Panel */}

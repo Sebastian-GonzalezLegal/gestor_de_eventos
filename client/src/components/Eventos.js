@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch, FaTimes, FaBuilding, FaTag, FaEye } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch, FaTimes, FaBuilding, FaTag, FaEye, FaList } from 'react-icons/fa';
 import { eventosAPI, subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
 import EventoForm from './EventoForm';
 import AttendeesModal from './AttendeesModal';
+import CalendarView from './CalendarView';
 import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
 import './Eventos.css';
@@ -16,6 +17,7 @@ const Eventos = () => {
   const [allEventos, setAllEventos] = useState([]);
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
   
   // Filter states
   const [filters, setFilters] = useState({
@@ -289,6 +291,24 @@ const Eventos = () => {
         </div>
 
       <div className="filters-container">
+        <div className="view-toggle">
+            <button 
+                className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                onClick={() => setViewMode('list')}
+                title="Vista lista"
+            >
+                <FaList /> Lista
+            </button>
+            <button 
+                className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                onClick={() => setViewMode('calendar')}
+                title="Vista calendario"
+                style={{marginLeft: '10px'}}
+            >
+                <FaCalendarAlt /> Calendario
+            </button>
+        </div>
+
         <div className="search-box">
           <div className="search-input-container">
             <FaSearch className="search-icon" />
@@ -399,6 +419,25 @@ const Eventos = () => {
         </div>
       </div>
 
+      {viewMode === 'calendar' ? (
+         <CalendarView 
+            events={eventos} 
+            onEventClick={(evento) => {
+               // When clicking on calendar event, we can show actions or edit if managed
+               if (canManage) {
+                   // Just show attendees for now as a safe default, 
+                   // or maybe a small menu? 
+                   // Let's stick to handleViewAttendees as in dashboard for consistency,
+                   // but maybe we want to allow edit?
+                   // The user asked "al apretar un dia se vean los eventos de ese dia", 
+                   // FullCalendar shows events on days. Clicking an event should show details.
+                   handleViewAttendees(evento);
+               } else {
+                   handleViewAttendees(evento);
+               }
+            }}
+         />
+      ) : (
       <div className="eventos-grid">
         {loading ? (
           <div className="loading">Cargando eventos...</div>
@@ -500,6 +539,7 @@ const Eventos = () => {
           })
         )}
       </div>
+      )}
 
       {showModal && canManage && (
         <EventoForm

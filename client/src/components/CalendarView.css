@@ -1,0 +1,119 @@
+.calendar-view-container {
+    background: var(--panel);
+    padding: 24px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    margin-top: 24px;
+  }
+  
+  .fc-toolbar-title {
+    font-size: 1.25rem !important;
+    font-weight: 700;
+    color: var(--text-main);
+    text-transform: capitalize;
+  }
+  
+  .fc-button {
+    text-transform: capitalize !important;
+    font-weight: 600 !important;
+    border-radius: var(--radius-md) !important;
+    padding: 0.5rem 1rem !important;
+    transition: all 0.2s ease !important;
+    box-shadow: none !important;
+  }
+  
+  /* Primary buttons (Month, Week, Day, Today) - Default state usually blue/black */
+  /* We want them to look like our secondary buttons by default, or primary if active */
+  
+  .fc-button-primary {
+    background-color: var(--panel) !important;
+    border-color: var(--border) !important;
+    color: var(--text-main) !important;
+  }
+  
+  .fc-button-primary:hover {
+    background-color: var(--bg) !important;
+    border-color: var(--text-tertiary) !important;
+    color: var(--text-main) !important;
+  }
+  
+  .fc-button-primary:disabled {
+    opacity: 0.6;
+  }
+  
+  /* Active state for view buttons */
+  .fc-button-active {
+    background-color: var(--text-main) !important;
+    border-color: var(--text-main) !important;
+    color: #fff !important;
+  }
+  
+  /* Today button specific styling if desired, currently it's a primary button */
+  .fc-today-button {
+    background-color: var(--primary-subtle) !important;
+    color: var(--primary) !important;
+    border: none !important;
+    font-weight: 700 !important;
+  }
+  .fc-today-button:disabled {
+    background-color: var(--bg) !important;
+    color: var(--text-tertiary) !important;
+  }
+  
+  /* Navigation buttons (prev/next) */
+  .fc-prev-button, .fc-next-button {
+    background-color: var(--panel) !important;
+    border: 1px solid var(--border) !important;
+    color: var(--text-secondary) !important;
+  }
+  .fc-prev-button:hover, .fc-next-button:hover {
+    background-color: var(--bg) !important;
+    color: var(--text-main) !important;
+  }
+  
+  /* Events */
+  .fc-event {
+    cursor: pointer;
+    border: none !important;
+    border-radius: var(--radius-sm) !important;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  }
+  
+  .event-active {
+    background-color: var(--primary) !important;
+    color: white !important;
+  }
+  .event-active:hover {
+    background-color: var(--primary-hover) !important;
+  }
+  
+  .event-inactive {
+    background-color: var(--text-tertiary) !important;
+    color: white !important;
+  }
+  
+  /* Day grid headers */
+  .fc-col-header-cell-cushion {
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-decoration: none !important;
+  }
+  
+  /* Day numbers */
+  .fc-daygrid-day-number {
+    color: var(--text-main);
+    text-decoration: none !important;
+    font-weight: 500;
+    padding: 8px !important;
+  }
+  
+  /* Today highlight */
+  .fc-day-today {
+    background-color: var(--primary-subtle) !important;
+  }
+  
