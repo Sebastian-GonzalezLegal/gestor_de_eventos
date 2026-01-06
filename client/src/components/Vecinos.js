@@ -4,7 +4,9 @@ import { vecinosAPI } from '../services/api';
 import Modal from './Modal';
 import VecinoForm from './VecinoForm';
 import VecinoDetalle from './VecinoDetalle';
+import ConfirmationModal from './ConfirmationModal';
 import { useUser } from '../contexts/UserContext';
+import { formatDate } from '../utils/dateUtils';
 import './Vecinos.css';
 
 const Vecinos = () => {
@@ -31,6 +33,15 @@ const Vecinos = () => {
   const [alert, setAlert] = useState(null);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
   const [historyVecino, setHistoryVecino] = useState(null);
+  
+  // Confirmation Modal State
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    type: 'danger'
+  });
 
   useEffect(() => {
     loadVecinos();
@@ -107,16 +118,23 @@ const Vecinos = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('¿Está seguro de eliminar este vecino?')) {
-      try {
-        await vecinosAPI.delete(id);
-        showAlert('Vecino eliminado correctamente', 'success');
-        loadVecinos();
-      } catch (error) {
-        showAlert(error.response?.data?.error || 'Error al eliminar vecino', 'error');
+  const handleDelete = (id) => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Eliminar Vecino',
+      message: '¿Está seguro que desea eliminar este vecino? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await vecinosAPI.delete(id);
+          showAlert('Vecino eliminado correctamente', 'success');
+          loadVecinos();
+        } catch (error) {
+          showAlert(error.response?.data?.error || 'Error al eliminar vecino', 'error');
+        }
       }
-    }
+    });
   };
 
   const handleToggleActivo = async (id) => {
@@ -142,18 +160,6 @@ const Vecinos = () => {
   const showAlert = (message, type) => {
     setAlert({ message, type });
     setTimeout(() => setAlert(null), 3000);
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    const date = new Date(dateString);
-    return date.toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
   };
 
   if (loading) {
@@ -340,7 +346,7 @@ const Vecinos = () => {
                     return (
                         <div className="historial-content">
                             <div className="alert alert-info">
-                                <p><strong>Fecha del cambio:</strong> {formatDate(datos.fecha_guardado)}</p>
+                                <p><strong>Fecha del cambio:</strong> {formatDate(datos.fecha_guardado, { withTime: true })}</p>
                             </div>
                             <table className="table table-bordered">
                                 <tbody>
@@ -350,7 +356,7 @@ const Vecinos = () => {
                                     <tr><th>Email</th><td>{datos.email || '-'}</td></tr>
                                     <tr><th>Teléfono</th><td>{datos.telefono || '-'}</td></tr>
                                     <tr><th>Celular</th><td>{datos.celular || '-'}</td></tr>
-                                    <tr><th>Fecha Nac.</th><td>{datos.fecha_nacimiento ? formatDate(datos.fecha_nacimiento).split(',')[0] : '-'}</td></tr>
+                                    <tr><th>Fecha Nac.</th><td>{formatDate(datos.fecha_nacimiento, { short: true })}</td></tr>
                                     <tr><th>Dirección</th><td>{datos.calle} {datos.altura} {datos.piso} {datos.departamento}</td></tr>
                                     <tr><th>Barrio Especificación</th><td>{datos.barrio_especificacion || '-'}</td></tr>
                                     <tr><th>Ocupación</th><td>{datos.ocupacion || '-'}</td></tr>
@@ -390,6 +396,16 @@ const Vecinos = () => {
           }}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ ...confirmation, isOpen: false })}
+        onConfirm={confirmation.onConfirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        confirmText={confirmation.confirmText}
+        type={confirmation.type}
+      />
     </div>
   );
 };

@@ -1,19 +1,9 @@
 import React from 'react';
 import { FaTimes, FaUser, FaIdCard, FaCalendarCheck, FaStickyNote } from 'react-icons/fa';
+import { formatDate } from '../utils/dateUtils';
 import './AttendeesModal.css';
 
 const AttendeesModal = ({ eventName, attendees, onClose, loading }) => {
-  const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content attendees-modal" onClick={e => e.stopPropagation()}>
@@ -61,7 +51,7 @@ const AttendeesModal = ({ eventName, attendees, onClose, loading }) => {
                           </div>
                         </td>
                         <td>{attendee.documento}</td>
-                        <td>{formatDate(attendee.fecha_registro)}</td>
+                        <td>{formatDate(attendee.fecha_registro, { withTime: true })}</td>
                         <td>
                           {attendee.notas ? (
                             <span className="attendee-note" title={attendee.notas}>

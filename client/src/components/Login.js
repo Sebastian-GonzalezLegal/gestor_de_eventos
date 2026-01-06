@@ -57,8 +57,7 @@ const Login = ({ onLogin }) => {
               />
             </div>
           </div>
-          <br></br>
-          <p className="login-subtitle">Municipio de Tigre</p>
+          <p className="login-subtitle mt-3">Municipio de Tigre</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">

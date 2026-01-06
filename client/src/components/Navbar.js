@@ -19,6 +19,7 @@ import {
   FaUserCog
 } from 'react-icons/fa';
 import { vecinosAPI, eventosAPI, registrosAPI, subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
+import { formatDate } from '../utils/dateUtils';
 import './Navbar.css';
 
 const Navbar = ({ user, onLogout }) => {
@@ -62,42 +63,6 @@ const Navbar = ({ user, onLogout }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
-  // Función para formatear fechas de manera segura
-  const formatDate = (dateInput) => {
-    if (!dateInput) return 'Sin fecha';
-
-    try {
-      let date;
-
-      // Si es un string, intentar parsearlo
-      if (typeof dateInput === 'string') {
-        // Intentar diferentes formatos comunes
-        const formats = [
-          dateInput, // formato original
-          dateInput.replace(/(\d{2})\/(\d{2})\/(\d{4})/, '$3-$2-$1'), // DD/MM/YYYY -> YYYY-MM-DD
-          dateInput.replace(/(\d{2})-(\d{2})-(\d{4})/, '$3-$2-$1'), // DD-MM-YYYY -> YYYY-MM-DD
-        ];
-
-        for (const format of formats) {
-          date = new Date(format);
-          if (!isNaN(date.getTime())) break;
-        }
-      } else {
-        // Si no es string, intentar convertirlo directamente
-        date = new Date(dateInput);
-      }
-
-      // Verificar si la fecha es válida
-      if (isNaN(date.getTime())) {
-        return 'Fecha inválida';
-      }
-
-      return date.toLocaleDateString('es-ES');
-    } catch (error) {
-      return 'Fecha inválida';
-    }
-  };
 
   // Función de búsqueda global
   const performGlobalSearch = async (query) => {

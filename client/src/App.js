@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import Navbar from './components/Navbar';
@@ -11,6 +11,7 @@ import Subsecretarias from './components/Subsecretarias';
 import Tipos from './components/Tipos';
 import Subtipos from './components/Subtipos';
 import Usuarios from './components/Usuarios';
+import WelcomeScreen from './components/WelcomeScreen';
 import { UserProvider, useUser } from './contexts/UserContext';
 
 // Componente para proteger rutas
@@ -41,6 +42,20 @@ function App() {
 
 function AppContent() {
   const { user, loading, login, logout } = useUser();
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Custom login handler to show welcome screen
+  const handleLogin = (userData) => {
+    setShowWelcome(true);
+    // Don't call login immediately to context to prevent immediate redirect/render of dashboard
+    // But we need the user data for the welcome screen
+    // Actually, we can call login, but we need to overlay the welcome screen
+    login(userData);
+  };
+
+  const handleWelcomeFinished = () => {
+    setShowWelcome(false);
+  };
 
   if (loading) {
     return (
@@ -53,14 +68,24 @@ function AppContent() {
 
   return (
     <>
-      {user && <Navbar user={user} onLogout={logout} />}
-      <div className="container">
+      {showWelcome && user && (
+        <WelcomeScreen user={user} onFinished={handleWelcomeFinished} />
+      )}
+      
+      {/* 
+        Si se muestra el welcome screen, ocultamos el contenido principal o lo dejamos de fondo
+        Para una transición más suave, lo dejamos de fondo pero el WelcomeScreen tiene z-index alto
+      */}
+      
+      {user && !showWelcome && <Navbar user={user} onLogout={logout} />}
+      
+      <div className="container" style={showWelcome ? { opacity: 0 } : { opacity: 1, transition: 'opacity 0.5s' }}>
         <Routes>
           <Route
             path="/login"
             element={
               <PublicRoute user={user}>
-                <Login onLogin={login} />
+                <Login onLogin={handleLogin} />
               </PublicRoute>
             }
           />

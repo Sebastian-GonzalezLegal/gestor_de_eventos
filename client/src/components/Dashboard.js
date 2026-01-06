@@ -9,12 +9,12 @@ import {
   FaSearch, 
   FaArrowRight, 
   FaEye, 
-  FaExternalLinkAlt, 
   FaTimes 
 } from 'react-icons/fa';
 import { dashboardAPI, eventosAPI, vecinosAPI, registrosAPI } from '../services/api';
 import AttendeesModal from './AttendeesModal';
 import { Link } from 'react-router-dom';
+import { formatDate, getTodayFriendly } from '../utils/dateUtils';
 import './Dashboard.css';
 
 const DetailsModal = ({ isOpen, onClose, title, children }) => {
@@ -119,22 +119,7 @@ const Dashboard = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return { day: '--', month: '---' };
-    const date = new Date(dateString);
-    return {
-      day: date.getDate(),
-      month: date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''),
-      full: date.toLocaleDateString('es-ES')
-    };
-  };
-
-  const today = new Date().toLocaleDateString('es-ES', { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+  const today = getTodayFriendly();
 
   if (loading) {
     return (
@@ -147,7 +132,12 @@ const Dashboard = () => {
   // Render content for Details Modal
   const renderDetailsContent = () => {
     if (detailsModal.loading) {
-      return <div className="text-center p-4">Cargando detalles...</div>;
+      return (
+        <div className="text-center p-4">
+          <div className="spinner" style={{margin: '0 auto 10px'}}></div>
+          <p>Cargando detalles...</p>
+        </div>
+      );
     }
 
     if (!detailsModal.data || detailsModal.data.length === 0) {
@@ -201,7 +191,7 @@ const Dashboard = () => {
               {detailsModal.data.map(e => (
                 <tr key={e.id}>
                   <td>{e.nombre}</td>
-                  <td>{new Date(e.fecha_evento).toLocaleDateString('es-ES')}</td>
+                  <td>{formatDate(e.fecha_evento)}</td>
                   <td>{e.hora_evento?.substring(0, 5)}</td>
                 </tr>
               ))}
@@ -303,7 +293,7 @@ const Dashboard = () => {
           {stats.proximosEventos.length > 0 ? (
             <div className="events-list">
               {stats.proximosEventos.map((evento) => {
-                const dateObj = formatDate(evento.fecha_evento);
+                const dateObj = formatDate(evento.fecha_evento, { returnObject: true });
                 return (
                   <div key={evento.id} className="event-item">
                     <div className="event-date-badge">
