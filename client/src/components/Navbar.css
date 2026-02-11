@@ -491,19 +491,22 @@
 .mobile-menu {
   position: fixed;
   top: 0;
-  right: -100%;
+  right: 0;
   width: 300px;
   height: 100vh;
   background: var(--panel);
   z-index: 2000;
   box-shadow: -10px 0 30px rgba(0,0,0,0.1);
-  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateX(100%); /* Use transform for hiding */
+  visibility: hidden; /* Ensure it's hidden */
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.3s;
   display: flex;
   flex-direction: column;
 }
 
 .mobile-menu.active {
-  right: 0;
+  transform: translateX(0); /* Reset transform to show */
+  visibility: visible;
 }
 
 .mobile-menu-header {
@@ -660,6 +663,14 @@
   
   .mobile-menu-toggle {
     display: block;
+  }
+}
+
+@media (min-width: 1025px) {
+  .mobile-menu,
+  .mobile-menu-toggle,
+  .navbar-overlay {
+    display: none !important;
   }
 }
 

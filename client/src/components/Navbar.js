@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   FaHome,
@@ -63,6 +64,30 @@ const Navbar = ({ user, onLogout }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // Efecto para cerrar menú móvil en resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 1024) {
+        setShowMobileMenu(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Efecto para bloquear scroll del body cuando el menú móvil está abierto
+  useEffect(() => {
+    if (showMobileMenu) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showMobileMenu]);
 
   // Función de búsqueda global
   const performGlobalSearch = async (query) => {
@@ -260,6 +285,121 @@ const Navbar = ({ user, onLogout }) => {
 
   const isActive = (path) => location.pathname === path;
   const isConfigActive = () => ['/subsecretarias', '/tipos', '/subtipos', '/usuarios'].includes(location.pathname);
+
+  // Portal para menú móvil
+  const MobileMenuPortal = () => createPortal(
+    <>
+      <div className={`navbar-overlay ${(showMobileMenu) ? 'active' : ''}`} onClick={closeMenus}></div>
+      <div className={`mobile-menu ${showMobileMenu ? 'active' : ''}`}>
+        <div className="mobile-menu-header">
+          <div className="mobile-brand">
+             <span className="brand-accent">TIGRE</span> MUNICIPIO
+          </div>
+          <button className="mobile-close-btn" onClick={closeMenus}><FaTimes /></button>
+        </div>
+
+        <div className="mobile-menu-content">
+          <div className="mobile-section-title">Principal</div>
+          <Link
+            to="/"
+            className={`mobile-menu-item ${isActive('/') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaHome /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Inicio</div>
+            </div>
+          </Link>
+          <Link
+            to="/registro"
+            className={`mobile-menu-item ${isActive('/registro') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaClipboardList /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Registro</div>
+            </div>
+          </Link>
+
+          <Link
+            to="/vecinos"
+            className={`mobile-menu-item ${isActive('/vecinos') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaUsers /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Vecinos</div>
+            </div>
+          </Link>
+
+          <Link
+            to="/eventos"
+            className={`mobile-menu-item ${isActive('/eventos') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaCalendarAlt /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Eventos</div>
+            </div>
+          </Link>
+
+          <div className="mobile-divider"></div>
+          <div className="mobile-section-title">Configuración</div>
+
+          <Link
+            to="/subsecretarias"
+            className={`mobile-menu-item ${isActive('/subsecretarias') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaBuilding /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Subsecretarías</div>
+            </div>
+          </Link>
+
+          <Link
+            to="/tipos"
+            className={`mobile-menu-item ${isActive('/tipos') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaTags /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Tipos</div>
+            </div>
+          </Link>
+
+          <Link
+            to="/subtipos"
+            className={`mobile-menu-item ${isActive('/subtipos') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaTag /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Subtipos</div>
+            </div>
+          </Link>
+
+          <Link
+            to="/usuarios"
+            className={`mobile-menu-item ${isActive('/usuarios') ? 'active' : ''}`}
+            onClick={closeMenus}
+          >
+            <div className="mobile-menu-item-icon"><FaUserCog /></div>
+            <div className="mobile-menu-item-content">
+              <div className="mobile-menu-item-title">Usuarios</div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="mobile-footer-actions">
+             <button className="mobile-logout-btn" onClick={onLogout}>
+                <FaSignOutAlt /> Cerrar Sesión
+             </button>
+          </div>
+      </div>
+    </>,
+    document.body
+  );
 
   return (
     <nav className="navbar">
@@ -486,118 +626,9 @@ const Navbar = ({ user, onLogout }) => {
           {showMobileMenu ? <FaTimes /> : <FaBars />}
         </button>
       </div>
-
-      {/* Overlay para cerrar menús */}
-      <div className={`navbar-overlay ${(showMobileMenu) ? 'active' : ''}`} onClick={closeMenus}></div>
-
-      {/* Menú móvil */}
-      <div className={`mobile-menu ${showMobileMenu ? 'active' : ''}`}>
-        <div className="mobile-menu-header">
-          <div className="mobile-brand">
-             <span className="brand-accent">TIGRE</span> MUNICIPIO
-          </div>
-          <button className="mobile-close-btn" onClick={closeMenus}><FaTimes /></button>
-        </div>
-
-        <div className="mobile-menu-content">
-          <div className="mobile-section-title">Principal</div>
-          <Link
-            to="/"
-            className={`mobile-menu-item ${isActive('/') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaHome /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Inicio</div>
-            </div>
-          </Link>
-          <Link
-            to="/registro"
-            className={`mobile-menu-item ${isActive('/registro') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaClipboardList /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Registro</div>
-            </div>
-          </Link>
-
-          <Link
-            to="/vecinos"
-            className={`mobile-menu-item ${isActive('/vecinos') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaUsers /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Vecinos</div>
-            </div>
-          </Link>
-
-          <Link
-            to="/eventos"
-            className={`mobile-menu-item ${isActive('/eventos') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaCalendarAlt /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Eventos</div>
-            </div>
-          </Link>
-
-          <div className="mobile-divider"></div>
-          <div className="mobile-section-title">Configuración</div>
-
-          <Link
-            to="/subsecretarias"
-            className={`mobile-menu-item ${isActive('/subsecretarias') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaBuilding /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Subsecretarías</div>
-            </div>
-          </Link>
-
-          <Link
-            to="/tipos"
-            className={`mobile-menu-item ${isActive('/tipos') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaTags /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Tipos</div>
-            </div>
-          </Link>
-
-          <Link
-            to="/subtipos"
-            className={`mobile-menu-item ${isActive('/subtipos') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaTag /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Subtipos</div>
-            </div>
-          </Link>
-
-          <Link
-            to="/usuarios"
-            className={`mobile-menu-item ${isActive('/usuarios') ? 'active' : ''}`}
-            onClick={closeMenus}
-          >
-            <div className="mobile-menu-item-icon"><FaUserCog /></div>
-            <div className="mobile-menu-item-content">
-              <div className="mobile-menu-item-title">Usuarios</div>
-            </div>
-          </Link>
-        </div>
-
-        <div className="mobile-footer-actions">
-             <button className="mobile-logout-btn" onClick={onLogout}>
-                <FaSignOutAlt /> Cerrar Sesión
-             </button>
-          </div>
-      </div>
+      
+      {/* Menú móvil y overlay renderizados via Portal */}
+      <MobileMenuPortal />
     </nav>
   );
 };
