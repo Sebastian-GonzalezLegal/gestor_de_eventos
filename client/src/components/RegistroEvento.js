@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers, FaTimes, FaMapMarkerAlt, FaClock, FaBuilding, FaTag } from 'react-icons/fa';
+import { FaSearch, FaUserCheck, FaArrowLeft, FaUsers, FaTimes, FaMapMarkerAlt, FaClock, FaBuilding, FaTag, FaTrash, FaUserPlus } from 'react-icons/fa';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { registrosAPI, vecinosAPI, eventosAPI, subsecretariasAPI, tiposAPI } from '../services/api';
+import ConfirmationModal from './ConfirmationModal';
+import VecinoForm from './VecinoForm';
 import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
 import './RegistroEvento.css';
@@ -8,6 +11,9 @@ import './RegistroEvento.css';
 const RegistroEvento = () => {
   const { isVisitor } = useUser();
   const { showNotification } = useNotification();
+  const location = useLocation();
+  const navigate = useNavigate();
+  
   const [vecinos, setVecinos] = useState([]);
   const [allVecinos, setAllVecinos] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +26,9 @@ const RegistroEvento = () => {
   const [loading, setLoading] = useState(false);
   const [loadingVecinos, setLoadingVecinos] = useState(false);
   
+  // UI States
+  const [showVecinoModal, setShowVecinoModal] = useState(false);
+
   // Event Dropdown Filters
   const [eventFilters, setEventFilters] = useState({
     subsecretaria: '',
@@ -28,9 +37,30 @@ const RegistroEvento = () => {
   const [subsecretarias, setSubsecretarias] = useState([]);
   const [tipos, setTipos] = useState([]);
 
+  // Confirmation Modal State
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    type: 'danger'
+  });
+
   useEffect(() => {
     loadInitialData();
   }, []);
+
+  // Check for selected vecino in navigation state
+  useEffect(() => {
+    if (location.state?.selectedVecino) {
+      seleccionarVecino(location.state.selectedVecino);
+      // Clear state to avoid re-selecting on refresh if desired, 
+      // but modifying history is tricky. We can just leave it.
+      // Or better, we only do this once on mount if we haven't selected anyone yet.
+      // But we need to wait for data? No, we have the object.
+      // However, we want to fetch their history which requires 'seleccionarVecino' logic.
+    }
+  }, [location.state]);
 
   const loadInitialData = async () => {
     try {
@@ -86,6 +116,10 @@ const RegistroEvento = () => {
   });
 
   const seleccionarVecino = async (vecino) => {
+    if (!vecino.activo) {
+        showNotification('No se puede seleccionar un vecino inactivo para registrar eventos', 'error');
+        return;
+    }
     setVecinoEncontrado(vecino);
     try {
       const response = await registrosAPI.getAll();
@@ -102,6 +136,10 @@ const RegistroEvento = () => {
     setEventosVecino([]);
     setEventoSeleccionado('');
     setNotas('');
+    // If we navigated here with state, clearing it might be good practice if we want "Back" to work as expected, 
+    // but clearing browser history state is complex. 
+    // We just reset the local view state.
+    navigate('.', { replace: true, state: {} });
   };
 
   const handleRegistro = async (e) => {
@@ -135,6 +173,55 @@ const RegistroEvento = () => {
     }
   };
 
+  const handleDeleteRegistro = (idRegistro) => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Eliminar Inscripción',
+      message: '¿Está seguro que desea eliminar esta inscripción? El vecino dejará de estar registrado en el evento.',
+      confirmText: 'Eliminar',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+            await registrosAPI.delete(idRegistro);
+            showNotification('Inscripción eliminada correctamente', 'success');
+            
+            // Recargar eventos del vecino
+            const response = await registrosAPI.getAll();
+            const eventosDelVecino = response.data.filter(registro => registro.vecino_id === vecinoEncontrado.id);
+            setEventosVecino(eventosDelVecino);
+        } catch (error) {
+            showNotification(error.response?.data?.error || 'Error al eliminar inscripción', 'error');
+        }
+      }
+    });
+  };
+
+  const handleCreateVecino = () => {
+    setShowVecinoModal(true);
+  };
+
+  const handleSaveVecino = (newVecino) => {
+      // The newVecino comes from the response of the API call in VecinoForm
+      // We add it to our list and select it immediately.
+      setShowVecinoModal(false);
+      
+      // Update local list
+      // Note: newVecino structure depends on API response. 
+      // Usually it is the object.
+      
+      // We reload all neighbors to be safe and ensure consistent state, 
+      // but for UX speed we can also append it locally if we trust the data.
+      // Let's reload all to be safe, but also select it.
+      
+      // Ideally we append it to 'allVecinos' and 'vecinos'.
+      setAllVecinos(prev => [newVecino, ...prev]);
+      
+      // Select it immediately
+      seleccionarVecino(newVecino);
+      
+      showNotification('Vecino creado y seleccionado', 'success');
+  };
+
   return (
     <div className="registro-evento">
       <div className="card">
@@ -150,39 +237,50 @@ const RegistroEvento = () => {
         {!vecinoEncontrado ? (
           <>
             <div className="search-section filters-container">
-              <div>
-                  <div className="search-box filter-group" style={{ flex: 2 }}>
-                    <div className="search-input-container">
-                      <FaSearch className="search-icon" />
-                      <input
-                        type="text"
-                        placeholder="Buscar por nombre, apellido, documento..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                      />
-                      {searchTerm && (
-                        <button
-                          type="button"
-                          className="clear-search"
-                          onClick={() => setSearchTerm('')}
-                          title="Limpiar búsqueda"
+              <div style={{display: 'flex', flexDirection: 'column', gap: '16px'}}>
+                  <div style={{display: 'flex', gap: '16px', alignItems: 'flex-start', flexWrap: 'wrap'}}>
+                      <div className="search-box filter-group" style={{ flex: 2, marginBottom: 0 }}>
+                        <div className="search-input-container">
+                          <FaSearch className="search-icon" />
+                          <input
+                            type="text"
+                            placeholder="Buscar por nombre, apellido, documento..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="search-input"
+                          />
+                          {searchTerm && (
+                            <button
+                              type="button"
+                              className="clear-search"
+                              onClick={() => setSearchTerm('')}
+                              title="Limpiar búsqueda"
+                            >
+                              <FaTimes />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      <div className="advanced-filters filter-group" style={{ flex: 1 }}>
+                        <select
+                            value={vecinoFilters.estado}
+                            onChange={(e) => setVecinoFilters({...vecinoFilters, estado: e.target.value})}
+                            className="filter-select"
                         >
-                          <FaTimes />
-                        </button>
+                            <option value="todos">Todos los estados</option>
+                            <option value="activos">Activos</option>
+                            <option value="inactivos">Inactivos</option>
+                        </select>
+                      </div>
+                      {!isVisitor && (
+                          <button 
+                            className="btn btn-primary" 
+                            style={{height: '42px', display: 'flex', alignItems: 'center', gap: '8px'}}
+                            onClick={handleCreateVecino}
+                          >
+                            <FaUserPlus /> Nuevo Vecino
+                          </button>
                       )}
-                    </div>
-                  </div>
-                  <div className="advanced-filters filter-group">
-                    <select
-                        value={vecinoFilters.estado}
-                        onChange={(e) => setVecinoFilters({...vecinoFilters, estado: e.target.value})}
-                        className="filter-select"
-                    >
-                        <option value="todos">Todos los estados</option>
-                        <option value="activos">Activos</option>
-                        <option value="inactivos">Inactivos</option>
-                    </select>
                   </div>
               </div>
             </div>
@@ -205,7 +303,16 @@ const RegistroEvento = () => {
                     </tr>
                   ) : vecinos.length === 0 ? (
                     <tr>
-                      <td colSpan="5" className="text-center">No se encontraron vecinos</td>
+                      <td colSpan="5" className="text-center">
+                          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px', padding: '20px'}}>
+                              <p>No se encontraron vecinos.</p>
+                              {!isVisitor && (
+                                <button className="btn btn-sm btn-outline-primary" onClick={handleCreateVecino}>
+                                    <FaUserPlus /> Crear Nuevo Vecino
+                                </button>
+                              )}
+                          </div>
+                      </td>
                     </tr>
                   ) : (
                     vecinos.map((vecino) => (
@@ -216,12 +323,12 @@ const RegistroEvento = () => {
                         <td>{vecino.email || '-'}</td>
                         <td>
                           <button
-                            className="btn btn-sm btn-primary"
+                            className={`btn btn-sm ${vecino.activo ? 'btn-primary' : 'btn-secondary'}`}
                             onClick={() => seleccionarVecino(vecino)}
-                            title="Seleccionar para registrar"
-                            disabled={isVisitor}
+                            title={vecino.activo ? "Seleccionar para registrar" : "Vecino inactivo"}
+                            disabled={isVisitor || !vecino.activo}
                           >
-                            <FaUserCheck /> Seleccionar
+                            <FaUserCheck /> {vecino.activo ? 'Seleccionar' : 'Inactivo'}
                           </button>
                         </td>
                       </tr>
@@ -343,9 +450,9 @@ const RegistroEvento = () => {
                   <div className="eventos-lista">
                     {eventosVecino && eventosVecino.length > 0 ? (
                       eventosVecino.map((evento) => (
-                        <div key={evento.id_registro} className="evento-item">
+                        <div key={evento.id_registro || evento.id} className="evento-item">
                           <div className="evento-header-row">
-                            <div className="evento-titulo">{evento.nombre}</div>
+                            <div className="evento-titulo">{evento.nombre || evento.evento_nombre}</div>
                             <div className="evento-fecha-badge">
                               {new Date(evento.fecha_evento).toLocaleDateString('es-ES')}
                             </div>
@@ -386,6 +493,15 @@ const RegistroEvento = () => {
 
                           <div className="evento-footer">
                             <small>Registrado el {new Date(evento.fecha_registro).toLocaleDateString('es-ES')} a las {new Date(evento.fecha_registro).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</small>
+                            {!isVisitor && (
+                                <button 
+                                    className="btn-delete-sm" 
+                                    onClick={() => handleDeleteRegistro(evento.id_registro || evento.id)}
+                                    title="Eliminar inscripción"
+                                >
+                                    <FaTrash />
+                                </button>
+                            )}
                           </div>
                         </div>
                       ))
@@ -400,6 +516,23 @@ const RegistroEvento = () => {
             </div>
           </div>
         )}
+
+      {showVecinoModal && (
+        <VecinoForm 
+            onClose={() => setShowVecinoModal(false)}
+            onSave={handleSaveVecino}
+        />
+      )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ ...confirmation, isOpen: false })}
+        onConfirm={confirmation.onConfirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        confirmText={confirmation.confirmText}
+        type={confirmation.type}
+      />
       </div>
     </div>
   );

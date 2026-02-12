@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaInfoCircle, FaBan, FaCheck, FaSearch, FaTimes, FaHistory } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaInfoCircle, FaBan, FaCheck, FaSearch, FaTimes, FaHistory, FaClipboardList } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
 import { vecinosAPI } from '../services/api';
 import Modal from './Modal';
 import VecinoForm from './VecinoForm';
 import VecinoDetalle from './VecinoDetalle';
 import ConfirmationModal from './ConfirmationModal';
 import { useUser } from '../contexts/UserContext';
-import { useNotification } from '../contexts/NotificationContext'; // Import Notification Hook
+import { useNotification } from '../contexts/NotificationContext';
 import { formatDate } from '../utils/dateUtils';
 import './Vecinos.css';
 
 const Vecinos = () => {
   const { isAdmin, isSubsecretaria } = useUser();
-  const { showNotification } = useNotification(); // Use notification
+  const { showNotification } = useNotification();
+  const navigate = useNavigate();
   const canManage = isAdmin || isSubsecretaria;
   
   // Data states
@@ -159,6 +161,10 @@ const Vecinos = () => {
     showNotification('Vecino guardado correctamente', 'success');
   };
 
+  const handleInscribir = (vecino) => {
+    navigate('/registro', { state: { selectedVecino: vecino } });
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -258,6 +264,13 @@ const Vecinos = () => {
                         <div className="action-buttons">
                           <button
                             className="btn-icon btn-secondary"
+                            onClick={() => handleInscribir(vecino)}
+                            title="Inscribir a evento"
+                          >
+                            <FaClipboardList />
+                          </button>
+                          <button
+                            className="btn-icon btn-secondary"
                             onClick={() => handleViewHistory(vecino)}
                             title="Ver historial"
                           >
@@ -295,6 +308,13 @@ const Vecinos = () => {
                         </div>
                       ) : (
                         <div className="action-buttons">
+                             <button
+                                className="btn-icon btn-secondary"
+                                onClick={() => handleInscribir(vecino)}
+                                title="Inscribir a evento"
+                              >
+                                <FaClipboardList />
+                            </button>
                             <button
                                 className="btn-icon btn-secondary"
                                 onClick={() => handleViewHistory(vecino)}

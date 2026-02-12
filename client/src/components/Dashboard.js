@@ -84,7 +84,7 @@ const Dashboard = () => {
       let data = [];
       if (type === 'vecinos') {
         const res = await vecinosAPI.getAll();
-        data = res.data.slice(0, 10); 
+        data = res.data.filter(v => v.activo).slice(0, 10); 
       } else if (type === 'eventos') {
         const res = await eventosAPI.getActive();
         data = res.data;

@@ -312,6 +312,31 @@
   color: var(--text-tertiary);
   font-size: 0.8rem;
   font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-delete-sm {
+  background: transparent;
+  border: 1px solid var(--danger-subtle);
+  color: var(--danger);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.8rem;
+}
+
+.btn-delete-sm:hover {
+  background: var(--danger);
+  color: white;
+  border-color: var(--danger);
+  transform: scale(1.05);
 }
 
 .no-events-message {

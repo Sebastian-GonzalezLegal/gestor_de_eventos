@@ -46,15 +46,14 @@ const VecinoForm = ({ vecino, onClose, onSave }) => {
     setLoading(true);
 
     try {
+      let response;
       if (vecino) {
-        await vecinosAPI.update(vecino.id, formData);
+        response = await vecinosAPI.update(vecino.id, formData);
       } else {
-        await vecinosAPI.create(formData);
+        response = await vecinosAPI.create(formData);
       }
-      onSave(); // The success notification is handled by the parent component (Vecinos.js) or we can move it here. 
-      // Plan said: "Update VecinoForm: Replace local alert/error state with useNotification".
-      // Vecinos.js already has "Vecino guardado correctamente" in handleSave.
-      // However, if an error occurs HERE, we should show it here.
+      // Pass the new/updated neighbor data back to the parent
+      onSave(response.data); 
     } catch (err) {
       showNotification(err.response?.data?.error || 'Error al guardar vecino', 'error');
     } finally {

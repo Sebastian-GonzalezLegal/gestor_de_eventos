@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch, FaTimes, FaBuilding, FaTag, FaEye, FaList } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaSearch, FaTimes, FaBuilding, FaTag, FaEye, FaList, FaInbox } from 'react-icons/fa';
 import { eventosAPI, subsecretariasAPI, tiposAPI, subtiposAPI } from '../services/api';
 import EventoForm from './EventoForm';
 import AttendeesModal from './AttendeesModal';
 import CalendarView from './CalendarView';
+import ConfirmationModal from './ConfirmationModal';
 import { useUser } from '../contexts/UserContext';
 import { useNotification } from '../contexts/NotificationContext';
 import './Eventos.css';
@@ -45,6 +46,15 @@ const Eventos = () => {
     loading: false,
     attendees: [],
     eventName: ''
+  });
+  
+  // Confirmation Modal State
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: () => {},
+    type: 'danger'
   });
 
   // Helpers
@@ -210,16 +220,23 @@ const Eventos = () => {
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('¿Estás seguro de eliminar este evento?')) return;
-
-    try {
-      await eventosAPI.delete(id);
-      showNotification('Evento eliminado correctamente', 'success');
-      loadInitialData();
-    } catch (error) {
-      showNotification('Error al eliminar evento', 'error');
-    }
+  const handleDelete = (id) => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Eliminar Evento',
+      message: '¿Estás seguro que desea eliminar este evento? Esta acción no se puede deshacer.',
+      confirmText: 'Eliminar',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await eventosAPI.delete(id);
+          showNotification('Evento eliminado correctamente', 'success');
+          loadInitialData();
+        } catch (error) {
+          showNotification('Error al eliminar evento', 'error');
+        }
+      }
+    });
   };
 
   const handleSave = async (formData) => {
@@ -447,9 +464,17 @@ const Eventos = () => {
       ) : (
       <div className="eventos-grid">
         {loading ? (
-          <div className="loading">Cargando eventos...</div>
+          <div className="loading-container">
+             <div className="loading-spinner"></div>
+             <p>Cargando eventos...</p>
+          </div>
         ) : eventos.length === 0 ? (
-          <div className="no-data">No hay eventos que coincidan con los filtros</div>
+          <div className="no-data-container">
+              <div className="no-data-icon">
+                <FaInbox />
+              </div>
+              <p>No hay eventos que coincidan con los filtros</p>
+          </div>
         ) : (
           eventos.map((evento) => {
             const expired = isExpired(evento);
@@ -567,6 +592,16 @@ const Eventos = () => {
           onClose={closeAttendeesModal}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        onClose={() => setConfirmation({ ...confirmation, isOpen: false })}
+        onConfirm={confirmation.onConfirm}
+        title={confirmation.title}
+        message={confirmation.message}
+        confirmText={confirmation.confirmText}
+        type={confirmation.type}
+      />
       </div>
     </div>
   );
