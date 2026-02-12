@@ -158,45 +158,46 @@ const Subtipos = () => {
         </div>
 
         <div className="filters-container">
-            <div className="advanced-filters">
-                <div className="search-box filter-group" style={{ flex: 2 }}>
-                    <div className="search-input-container">
-                        <FaSearch className="search-icon" />
-                        <input 
-                            type="text" 
-                            placeholder="Buscar subtipo..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="search-input"
-                        />
-                        {searchTerm && (
-                            <button
-                            type="button"
-                            className="clear-search"
-                            onClick={() => setSearchTerm('')}
-                            title="Limpiar búsqueda"
-                            >
-                            <FaTimes />
-                            </button>
-                        )}
-                    </div>
-                </div>
-                <div className="filter-group">
-                    <select
-                        id="tipo-filter"
-                        value={selectedTipo}
-                        onChange={(e) => setSelectedTipo(e.target.value)}
-                        className="filter-select"
-                    >
-                        <option value="">Todos los tipos</option>
-                        {tipos.map((tipo) => (
-                        <option key={tipo.id} value={tipo.id}>
-                            {tipo.nombre}
-                        </option>
-                        ))}
-                    </select>
-                </div>
+          <div className="search-box">
+            <div className="search-input-container">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Buscar subtipo..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  className="clear-search"
+                  onClick={() => setSearchTerm('')}
+                  title="Limpiar búsqueda"
+                >
+                  <FaTimes />
+                </button>
+              )}
             </div>
+          </div>
+
+          <div className="advanced-filters">
+            <div className="filter-group">
+              <select
+                id="tipo-filter"
+                value={selectedTipo}
+                onChange={(e) => setSelectedTipo(e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Todos los tipos</option>
+                {tipos.map((tipo) => (
+                  <option key={tipo.id} value={tipo.id}>
+                    {tipo.nombre}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         <div className="eventos-grid">

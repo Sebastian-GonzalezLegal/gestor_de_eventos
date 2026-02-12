@@ -293,17 +293,16 @@ const Eventos = () => {
       <div className="filters-container">
         <div className="view-toggle">
             <button 
-                className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                className={`btn btn-toggle ${viewMode === 'list' ? 'btn-primary' : 'btn-outline-secondary'}`}
                 onClick={() => setViewMode('list')}
                 title="Vista lista"
             >
                 <FaList /> Lista
             </button>
             <button 
-                className={`btn ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline-secondary'}`}
+                className={`btn btn-toggle ${viewMode === 'calendar' ? 'btn-primary' : 'btn-outline-secondary'}`}
                 onClick={() => setViewMode('calendar')}
                 title="Vista calendario"
-                style={{marginLeft: '10px'}}
             >
                 <FaCalendarAlt /> Calendario
             </button>
@@ -332,90 +331,98 @@ const Eventos = () => {
           </div>
         </div>
 
-        <div className="advanced-filters">
-          <div className="filter-group">
-            <select
-              name="estado"
-              value={filters.estado}
-              onChange={handleFilterChange}
-              className="filter-select"
-            >
-              <option value="todos">Todos los estados</option>
-              <option value="activos">Activos</option>
-              <option value="inactivos">Inactivos</option>
-              <option value="expirados">Expirados</option>
-            </select>
-          </div>
-
-          {!isSubsecretaria && (
+        <div className="advanced-filters-grid">
+          <div className="filter-row">
             <div className="filter-group">
               <select
-                name="subsecretaria"
-                value={filters.subsecretaria}
+                name="estado"
+                value={filters.estado}
                 onChange={handleFilterChange}
                 className="filter-select"
               >
-                <option value="">Todas las subsecretarías</option>
-                {filterOptions.subsecretarias.map(sub => (
-                  <option key={sub.id} value={sub.id}>{sub.nombre}</option>
+                <option value="todos">Todos los estados</option>
+                <option value="activos">Activos</option>
+                <option value="inactivos">Inactivos</option>
+                <option value="expirados">Expirados</option>
+              </select>
+            </div>
+
+            {!isSubsecretaria && (
+              <div className="filter-group">
+                <select
+                  name="subsecretaria"
+                  value={filters.subsecretaria}
+                  onChange={handleFilterChange}
+                  className="filter-select"
+                >
+                  <option value="">Todas las subsecretarías</option>
+                  {filterOptions.subsecretarias.map(sub => (
+                    <option key={sub.id} value={sub.id}>{sub.nombre}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <div className="filter-group">
+              <select
+                name="tipo"
+                value={filters.tipo}
+                onChange={handleFilterChange}
+                className="filter-select"
+              >
+                <option value="">Todos los tipos</option>
+                {filterOptions.tipos.map(tipo => (
+                  <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
                 ))}
               </select>
             </div>
-          )}
 
-          <div className="filter-group">
-            <select
-              name="tipo"
-              value={filters.tipo}
-              onChange={handleFilterChange}
-              className="filter-select"
-            >
-              <option value="">Todos los tipos</option>
-              {filterOptions.tipos.map(tipo => (
-                <option key={tipo.id} value={tipo.id}>{tipo.nombre}</option>
-              ))}
-            </select>
+            <div className="filter-group">
+              <select
+                name="subtipo"
+                value={filters.subtipo}
+                onChange={handleFilterChange}
+                disabled={!filters.tipo}
+                className="filter-select"
+              >
+                <option value="">Todos los subtipos</option>
+                {filterOptions.subtipos.map(subtipo => (
+                  <option key={subtipo.id} value={subtipo.id}>{subtipo.nombre}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
-          <div className="filter-group">
-            <select
-              name="subtipo"
-              value={filters.subtipo}
-              onChange={handleFilterChange}
-              disabled={!filters.tipo}
-              className="filter-select"
-            >
-              <option value="">Todos los subtipos</option>
-              {filterOptions.subtipos.map(subtipo => (
-                <option key={subtipo.id} value={subtipo.id}>{subtipo.nombre}</option>
-              ))}
-            </select>
-          </div>
+          <div className="filter-row dates-row">
+            <div className="filter-group date-range-group">
+              <div className="date-filter">
+                 <label className="filter-label">Desde</label>
+                 <input
+                   type="date"
+                   name="fechaDesde"
+                   value={filters.fechaDesde}
+                   onChange={handleFilterChange}
+                   className="filter-input"
+                   placeholder="Desde"
+                 />
+              </div>
+              <div className="date-filter">
+                 <label className="filter-label">Hasta</label>
+                 <input
+                   type="date"
+                   name="fechaHasta"
+                   value={filters.fechaHasta}
+                   onChange={handleFilterChange}
+                   className="filter-input"
+                   placeholder="Hasta"
+                 />
+              </div>
+            </div>
 
-          <div className="filter-group date-filter">
-             <input
-               type="date"
-               name="fechaDesde"
-               value={filters.fechaDesde}
-               onChange={handleFilterChange}
-               className="filter-input"
-               placeholder="Desde"
-             />
+            <button className="btn-clear-filters" onClick={clearFilters} title="Limpiar filtros">
+              Limpiar
+            </button>
           </div>
-          <div className="filter-group date-filter">
-             <input
-               type="date"
-               name="fechaHasta"
-               value={filters.fechaHasta}
-               onChange={handleFilterChange}
-               className="filter-input"
-               placeholder="Hasta"
-             />
-          </div>
-
-          <button className="btn-clear-filters" onClick={clearFilters} title="Limpiar filtros">
-            Limpiar
-          </button>
         </div>
       </div>
 
