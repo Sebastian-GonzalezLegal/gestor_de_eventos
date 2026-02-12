@@ -37,9 +37,26 @@ class AuthController {
         });
       }
 
-      const user = await Usuario.authenticate(email, password);
+      // Buscar usuario por email
+      const user = await Usuario.findByEmail(email);
 
       if (!user) {
+        return res.status(401).json({
+          error: 'Credenciales inválidas'
+        });
+      }
+
+      // Verificar si el usuario está activo
+      if (!user.activo) {
+        return res.status(403).json({
+          error: 'No puede iniciar sesión porque su usuario está desactivado'
+        });
+      }
+
+      // Verificar contraseña
+      const isValidPassword = await Usuario.verifyPassword(password, user.password);
+
+      if (!isValidPassword) {
         return res.status(401).json({
           error: 'Credenciales inválidas'
         });
