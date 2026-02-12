@@ -5,7 +5,12 @@ const Evento = require('../models/Evento');
 class RegistroController {
   static async getAll(req, res) {
     try {
-      const registros = await RegistroEvento.findAll();
+      let filterSubsecretariaId = null;
+      if (req.user && req.user.rol === 'subsecretaria') {
+        filterSubsecretariaId = req.user.subsecretaria_id;
+      }
+
+      const registros = await RegistroEvento.findAll(filterSubsecretariaId);
       res.json(registros);
     } catch (error) {
       res.status(500).json({ error: error.message });

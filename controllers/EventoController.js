@@ -5,7 +5,13 @@ class EventoController {
   static async getAll(req, res) {
     try {
       await Evento.disableExpired();
-      const eventos = await Evento.findAll();
+      
+      let filterSubsecretariaId = null;
+      if (req.user && req.user.rol === 'subsecretaria') {
+        filterSubsecretariaId = req.user.subsecretaria_id;
+      }
+
+      const eventos = await Evento.findAll(filterSubsecretariaId);
       res.json(eventos);
     } catch (error) {
       console.error('Error in EventoController.getAll:', error);
@@ -16,7 +22,13 @@ class EventoController {
   static async getActive(req, res) {
     try {
       await Evento.disableExpired();
-      const eventos = await Evento.findActive();
+      
+      let filterSubsecretariaId = null;
+      if (req.user && req.user.rol === 'subsecretaria') {
+        filterSubsecretariaId = req.user.subsecretaria_id;
+      }
+
+      const eventos = await Evento.findActive(filterSubsecretariaId);
       res.json(eventos);
     } catch (error) {
       console.error('Error in EventoController.getActive:', error);

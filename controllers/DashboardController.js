@@ -4,6 +4,8 @@ class DashboardController {
   static async getStats(req, res) {
     try {
       const stats = {};
+      const { rol, subsecretaria_id } = req.user || {};
+      const isSubsecretaria = rol === 'subsecretaria';
 
       // 1. Total Vecinos (Count)
       const vecinosPromise = new Promise((resolve, reject) => {
@@ -15,7 +17,15 @@ class DashboardController {
 
       // 2. Active Eventos (Count)
       const eventosPromise = new Promise((resolve, reject) => {
-        db.query('SELECT COUNT(*) as count FROM eventos WHERE activo = 1 AND fecha_evento >= CURRENT_DATE', (err, results) => {
+        let query = 'SELECT COUNT(*) as count FROM eventos WHERE activo = 1 AND fecha_evento >= CURRENT_DATE';
+        const params = [];
+        
+        if (isSubsecretaria) {
+          query += ' AND (subsecretaria_id = ? OR subsecretaria_id IS NULL)';
+          params.push(subsecretaria_id);
+        }
+
+        db.query(query, params, (err, results) => {
           if (err) reject(err);
           else resolve(results[0].count);
         });
@@ -23,7 +33,18 @@ class DashboardController {
 
       // 3. Registrations Today (Count)
       const registrationsPromise = new Promise((resolve, reject) => {
-        db.query('SELECT COUNT(*) as count FROM registros_eventos WHERE DATE(fecha_registro) = CURRENT_DATE', (err, results) => {
+        let query = 'SELECT COUNT(*) as count FROM registros_eventos re';
+        const params = [];
+
+        if (isSubsecretaria) {
+          query += ' JOIN eventos e ON re.evento_id = e.id WHERE DATE(re.fecha_registro) = CURRENT_DATE';
+          query += ' AND (e.subsecretaria_id = ? OR e.subsecretaria_id IS NULL)';
+          params.push(subsecretaria_id);
+        } else {
+          query += ' WHERE DATE(re.fecha_registro) = CURRENT_DATE';
+        }
+
+        db.query(query, params, (err, results) => {
           if (err) reject(err);
           else resolve(results[0].count);
         });
@@ -31,14 +52,22 @@ class DashboardController {
 
       // 4. Upcoming Events (List top 5)
       const upcomingEventsPromise = new Promise((resolve, reject) => {
-        db.query(`
+        let query = `
           SELECT e.id, e.nombre, e.fecha_evento, e.hora_evento,
                  (SELECT COUNT(*) FROM registros_eventos re WHERE re.evento_id = e.id) as inscritos
           FROM eventos e
           WHERE e.activo = 1 AND e.fecha_evento >= CURRENT_DATE
-          ORDER BY e.fecha_evento ASC, e.hora_evento ASC
-          LIMIT 5
-        `, (err, results) => {
+        `;
+        const params = [];
+
+        if (isSubsecretaria) {
+          query += ' AND (e.subsecretaria_id = ? OR e.subsecretaria_id IS NULL)';
+          params.push(subsecretaria_id);
+        }
+
+        query += ' ORDER BY e.fecha_evento ASC, e.hora_evento ASC LIMIT 5';
+
+        db.query(query, params, (err, results) => {
           if (err) reject(err);
           else resolve(results);
         });

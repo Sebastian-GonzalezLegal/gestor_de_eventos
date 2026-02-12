@@ -12,10 +12,11 @@ import { formatDate } from '../utils/dateUtils';
 import './Vecinos.css';
 
 const Vecinos = () => {
-  const { isAdmin, isSubsecretaria } = useUser();
+  const { isAdmin, isSubsecretaria, user } = useUser();
   const { showNotification } = useNotification();
   const navigate = useNavigate();
   const canManage = isAdmin || isSubsecretaria;
+  const isVisitante = user?.rol === 'visitante';
   
   // Data states
   const [allVecinos, setAllVecinos] = useState([]);
@@ -308,13 +309,15 @@ const Vecinos = () => {
                         </div>
                       ) : (
                         <div className="action-buttons">
-                             <button
+                            {!isVisitante && (
+                              <button
                                 className="btn-icon btn-secondary"
                                 onClick={() => handleInscribir(vecino)}
                                 title="Inscribir a evento"
                               >
                                 <FaClipboardList />
-                            </button>
+                              </button>
+                            )}
                             <button
                                 className="btn-icon btn-secondary"
                                 onClick={() => handleViewHistory(vecino)}
