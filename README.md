@@ -1,6 +1,6 @@
-# Gestor de Usuarios para Eventos
+# GVT - Gestión de Vecinos Tigre
 
-Sistema web para gestionar usuarios y eventos, permitiendo registrar usuarios a múltiples eventos con sistema de autenticación seguro.
+Sistema web para gestionar usuarios y eventos (GVT), permitiendo registrar usuarios a múltiples eventos con sistema de autenticación seguro.
 
 ## Características
 

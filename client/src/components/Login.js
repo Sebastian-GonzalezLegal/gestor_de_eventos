@@ -131,7 +131,7 @@ const Login = ({ onLogin }) => {
         </form>
 
         <div className="login-footer">
-          <p>Sistema de gestión de usuarios y eventos</p>
+          <p>GVT - Gestión de Vecinos Tigre</p>
         </div>
       </div>
     </div>

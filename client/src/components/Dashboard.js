@@ -246,7 +246,7 @@ const Dashboard = () => {
       <div className="dashboard-hero">
         <div className="hero-content">
           <h1 className="hero-title">Panel de Control</h1>
-          <p className="hero-subtitle">Sistema de Gestión Integral Tigre Municipio</p>
+          <p className="hero-subtitle">GVT - Gestión de Vecinos Tigre</p>
         </div>
         <div className="hero-date-badge">
           <FaCalendarAlt /> {today}

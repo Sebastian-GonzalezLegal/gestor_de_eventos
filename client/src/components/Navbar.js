@@ -410,7 +410,7 @@ const Navbar = ({ user, onLogout }) => {
             <div className="logo-container">
               <img
                 src="/logo_sin_fondo_logo.png"
-                alt="Logo Municipio de Tigre"
+                alt="Logo GVT Municipio de Tigre"
                 className="navbar-logo-main"
               />
             </div>
